@@ -1,12 +1,48 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
+const ColorPicker = ({ setBgColor }) => {
+    const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'];
+
+    return (
+        <div className="flex space-x-2 mt-4">
+            {colors.map((color, index) => (
+                <div
+                    key={index}
+                    className={`w-8 h-8 rounded-full cursor-pointer ${color}`}
+                    onClick={() => setBgColor(color)}
+
+                    
+                />
+            ))}
+        </div>
+    );
+};
 
 const PostBox = ({ setIsVisible, isVisible }) => {
 
-    const [bgColor, setBgColor] = useState('');
+    const [bgcolor, setBgColor] = useState('');
+    const [text, postMessage] = useState('');
 
-    const handlePost = () => {
+    const handlePost = async() => {
 
-        console.log('Post submitted!');
+        try{
+            
+           const post = await axios.post('/api/posts',{bgcolor,text})
+
+            toast.success(post.data)
+
+            postMessage('')
+            setBgColor('')
+
+            setIsVisible(false)
+
+
+        }catch(error){
+
+            toast.error(error.response.data)
+        }
+
     };
 
     const handleClose = () => {
@@ -27,11 +63,13 @@ const PostBox = ({ setIsVisible, isVisible }) => {
                 &times;
             </button>
             <div
-                className={`p-4 ${bgColor ? bgColor : 'bg-gray-200'} rounded-md`}
+                className={`p-4 ${bgcolor ? bgcolor : 'bg-gray-200'} rounded-md`}
             >
                 <textarea
                     placeholder="What's on your mind?"
-                    className="w-full h-60 bg-transparent outline-none text-lg p-2 rounded-md"
+                    className={`w-full h-60 bg-transparent ${!bgcolor ? 'text-black':'text-white'} font-semibold outline-none text-lg p-2  rounded-md`}
+                    onChange={(e)=>postMessage(e.target.value)}
+                    value={text}
                 />
             </div>
             <ColorPicker setBgColor={setBgColor} />
@@ -45,20 +83,6 @@ const PostBox = ({ setIsVisible, isVisible }) => {
     );
 };
 
-const ColorPicker = ({ setBgColor }) => {
-    const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'];
 
-    return (
-        <div className="flex space-x-2 mt-4">
-            {colors.map((color, index) => (
-                <div
-                    key={index}
-                    className={`w-8 h-8 rounded-full cursor-pointer ${color}`}
-                    onClick={() => setBgColor(color)}
-                />
-            ))}
-        </div>
-    );
-};
 
 export default PostBox;
