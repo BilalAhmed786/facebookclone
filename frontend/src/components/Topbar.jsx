@@ -1,13 +1,48 @@
 // Topbar.jsx
-import React from 'react';
-import { FaUser,FaComment,FaBell } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaUser, FaComment, FaBell } from 'react-icons/fa';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Topbar = () => {
+
+  const [togglemenu, stateTogglemenu] = useState(false)
+  const navigate = useNavigate()
+  
+  const toggleMenu = () => {
+
+    stateTogglemenu((togglemenu => !togglemenu))
+  }
+
+  const Logout = async () => {
+
+    try {
+
+      const res = await axios.post('/api/auth/logout')
+    
+      if(res.data){
+
+        navigate('/login')
+      }
+        
+
+    } 
+    catch (error) {
+
+      console.log(error)
+    }
+
+  }
+
   return (
     <div className="bg-blue-600 text-white flex items-center justify-between p-3">
       {/* Logo Section */}
       <div className="flex items-center">
-        <div className="text-2xl font-bold">Facebook</div>
+        <div className="text-2xl font-bold">
+          <Link to="/home">
+            Facebook
+          </Link>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -26,28 +61,40 @@ const Topbar = () => {
 
       {/* Navigation and Icons */}
       <div className="flex items-center space-x-5">
-        <a href="/homepage" className="hover:text-red-200">Homepage</a>
-        <a href="/timeline" className="hover:text-red-200">Timeline</a>
-        <div className="flex items-center space-x-4">
+
+        <div className="flex items-center space-x-5 mr-14">
           {/* Icons */}
           <div className="relative">
-            <span className="material-icons text-sm"><FaUser/></span>
+            <span className="material-icons text-sm"><FaUser /></span>
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">1</span>
           </div>
           <div className="relative">
-            <span className="material-icons text-sm"><FaComment/></span>
+            <span className="material-icons text-sm"><FaComment /></span>
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">2</span>
           </div>
           <div className="relative">
-            <span className="material-icons text-sm"><FaBell/></span>
+            <span className="material-icons text-sm"><FaBell /></span>
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">1</span>
           </div>
           {/* Profile Picture */}
-          <img
-            src="/path/to/profile-pic.jpg"
-            alt="Profile"
-            className="w-8 h-8 rounded-full"
-          />
+          <div onClick={toggleMenu}>
+            <div style={{ display: togglemenu ? 'block' : 'none' }}
+              className='absolute bg-blue-600 mt-12 ml-2 p-5'>
+              <ul className='w-full -mt-3'>
+                <li
+                  className='w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300'>
+                  <Link to='/profile' >Profile</Link>
+                </li>
+                <li className='w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300' >
+                  <Link onClick={Logout}>Logout</Link>
+                </li>
+              </ul>
+            </div>
+            <img
+              alt="Profile"
+              className="w-8 h-8 ml-6 cursor-pointer rounded-full"
+            />
+          </div>
         </div>
       </div>
     </div>

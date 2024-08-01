@@ -1,15 +1,35 @@
 // Register.jsx
 import React, { useState } from 'react';
+import axios from 'axios'
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+
+  
+  const [name, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [retypepassword, setRetypepassword] = useState('');
+  const navigate = useNavigate()
+  
+  const handleSubmit = async(e) => {
+     e.preventDefault();
+   
+    await axios.post('/api/auth/register',{name,email,password,retypepassword})
+    .then((res)=>{
+      toast.success(res.data)
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle registration logic here
+      navigate('/home')
+
+    })
+    .catch((error)=>{
+      
+      toast.error(error.response.data)
+    
+      })
+
+     
   };
 
   return (
@@ -20,25 +40,15 @@ const Register = () => {
           <div className="mb-4">
             <input
               type="text"
-              id="firstName"
+              id="fullName"
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="First name"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              required
+              placeholder="Full name"
+              value={name}
+              onChange={(e) => setFullName(e.target.value)}
+              
             />
           </div>
-          <div className="mb-4">
-            <input
-              type="text"
-              id="lastName"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Last name"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
-          </div>
+      
           <div className="mb-4">
             <input
               type="email"
@@ -47,7 +57,7 @@ const Register = () => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
+              
             />
           </div>
           <div className="mb-6">
@@ -58,9 +68,21 @@ const Register = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
+              
             />
           </div>
+          <div className="mb-6">
+            <input
+              type="password"
+              id="retypepassword"
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              placeholder="retype Password"
+              value={retypepassword}
+              onChange={(e) => setRetypepassword(e.target.value)}
+              
+            />
+          </div>
+          
           <div className="flex items-center justify-between">
             <button
               type="submit"

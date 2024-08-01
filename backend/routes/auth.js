@@ -13,12 +13,12 @@ router.post('/register', async (req, res) => {
     if (!name || !email || !password || !retypepassword) {
 
 
-        return res.json('All fields requried')
+        return res.status(400).json('All fields requried')
     }
 
     if (password !== retypepassword) {
 
-        return res.json('Mismatch passwords')
+        return res.status(400).json('Mismatch passwords')
 
     }
 
@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
 
         if (user) {
 
-            return res.status(400).json({ msg: 'User already exists' });
+            return res.status(400).json('User already exists'   );
 
         }
 
@@ -81,7 +81,7 @@ router.post('/login', async (req, res) => {
 
     if (!email || !password) {
 
-        return res.json('All fileds required')
+        return res.status(400).json('All fileds required')
 
     }
 
@@ -89,12 +89,12 @@ router.post('/login', async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ msg: 'Invalid credentials' });
+            return res.status(400).json('Invalid credentials');
         }
 
         const isMatch = await user.matchPassword(password);
         if (!isMatch) {
-            return res.status(400).json({ msg: 'Invalid credentials' });
+            return res.status(400).json('Invalid credentials');
         }
 
         const payload = { userId: user.id };
@@ -119,7 +119,7 @@ router.post('/login', async (req, res) => {
 // logout user
 router.post('/logout', (req, res) => {
     
-    console.log('Request body:', req.body); // Log the request body for debugging
+   
     try {
       // Clear the auth token cookie
       res.clearCookie('auth_token', {
@@ -127,9 +127,9 @@ router.post('/logout', (req, res) => {
         secure: process.env.NODE_ENV === 'production',
         
       });
-  
+      
       // Respond with a success message
-      return res.status(200).json({ msg: 'Logged out successfully' });
+      return res.status(200).json('Logged out successfully');
     } catch (error) {
       console.error('Logout error:', error);
       return res.status(500).json({ msg: 'Server error during logout' });

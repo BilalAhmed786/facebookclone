@@ -1,13 +1,39 @@
 // Login.jsx
 import React, { useState } from 'react';
-
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 const Login = () => {
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate()
+  
+  const handleSubmit = async(e) => {
 
-  const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle login logic here
+  
+      try{
+        
+        
+        const res = await axios.post('/api/auth/login',{email,password})
+    
+
+        if(res.data){
+          
+            navigate('/home')
+
+        }
+
+        }catch(error){
+      
+            toast.error(error.response.data)
+    
+    
+          }
+
+
+
   };
 
   return (
@@ -29,7 +55,7 @@ const Login = () => {
                 placeholder="Email or phone number"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
+                
               />
             </div>
             <div className="mb-6">
@@ -40,7 +66,7 @@ const Login = () => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                required
+                
               />
             </div>
             <div className="flex flex-col items-center">

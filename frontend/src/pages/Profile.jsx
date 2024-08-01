@@ -4,9 +4,13 @@ import Leftsidebar from '../components/Leftsidebar';
 import ProfileFeed from '../components/ProfileFeed';
 import cover from '../images/profilepic.webp';
 import profilepic from '../images/cover.jpg';
+import Topbar from '../components/Topbar';
 
 const Profile = () => {
     return (
+    <>
+        <Topbar/>
+        
         <div className="flex h-screen">
             <Leftsidebar />
             <div className="left-sidebar w-full overflow-auto">
@@ -27,6 +31,7 @@ const Profile = () => {
                 </div>
             </div>
         </div>
+    </>    
     );
 };
 
