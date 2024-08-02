@@ -5,13 +5,14 @@ import Topbar from '../components/Topbar';
 import Feed from '../components/Feed';
 
 const Home = () => {
+
   return (
   <>
     <Topbar/>
     <div className='flex'>
       <Leftsidebar />
       <div className='left-sidebar flex w-full overflow-auto'>
-        <Feed />
+        <Feed/>
         <Rightsidebar />
       </div>
     </div>

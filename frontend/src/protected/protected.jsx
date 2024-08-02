@@ -20,7 +20,7 @@ useEffect(() => {
 
                 const user = await axios.get('/api/auth/userinfo')
 
-                userDetail(user?.data.name)
+                userDetail(user?.data._id)
                
             } catch (error) {
                 
@@ -43,7 +43,7 @@ useEffect(() => {
 
     return (
         <>
-            <Component />
+            <Component/>
         </>
     )
 }

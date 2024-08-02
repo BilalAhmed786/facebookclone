@@ -11,7 +11,7 @@ const { request } = require('https');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
 
-        cb(null, 'uploads/');
+        cb(null, 'public/uploads');
     },
     filename: (req, file, cb) => {
 
@@ -28,9 +28,12 @@ const router = express.Router();
 
 
 router.post('/upload', upload.array('files', 10), authrize, async (req, res) => {
+   
     if (!req.files || req.files.length === 0) {
+   
         return res.status(400).send('No files uploaded.');
-    }
+   
+     }
 
       const files = req.files.map(res=>res.filename)
    
@@ -58,7 +61,7 @@ router.post('/upload', upload.array('files', 10), authrize, async (req, res) => 
 
 
 // Create a post
-router.post('/', authrize, async (req, res) => {
+router.post('/', async (req, res) => {
     const { text, bgcolor } = req.body;
 
     if (!text) {
@@ -89,7 +92,7 @@ router.post('/', authrize, async (req, res) => {
 
 
 // Get single posts
-router.get('/:id', authrize, async (req, res) => {
+router.get('singlepost/:id', async (req, res) => {
     try {
         const post = await Post.findById(req.params.id).populate('user').select('-password -retypepasword').populate('comments');
 
@@ -106,7 +109,7 @@ router.get('/:id', authrize, async (req, res) => {
 });
 
 // delete single posts
-router.delete('/:id', authrize, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
 
         const post = await Post.findById(req.params.id)
@@ -130,11 +133,11 @@ router.delete('/:id', authrize, async (req, res) => {
 });
 
 //like unlike a post 
-router.put('/like/:id', authrize, async (req, res) => {
+router.put('/like/:id',async (req, res) => {
 
     try {
 
-        const post = await Post.findById(req.params.id)
+        const post = await Post.findById(req.user.id)
 
         if (!post.likes.includes(req.body.userId)) {
 
@@ -159,14 +162,17 @@ router.put('/like/:id', authrize, async (req, res) => {
 
 })
 
-// get post for timeline follwing and currentuser posts 
+// get post for homepage follwing and currentuser posts 
 
 
-router.get('/allposts/:id', authrize, async (req, res) => {
+router.get('/allposts', async (req, res) => {
+
+    
     try {
-        console.log(req.params.id)
-        const user = await User.findById(req.params.id);
+        
+            const user = await User.findById(req.user.userId);
 
+       
         // Find the user by ID from the request body
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
@@ -179,7 +185,22 @@ router.get('/allposts/:id', authrize, async (req, res) => {
         followingUsers.push(user._id.toString());
 
         // Find all posts from the current user and the users they are following
-        const allPosts = await Post.find({ user: { $in: followingUsers } });
+        const allPosts = await Post.find({ user: { $in: followingUsers } }).populate('user');
+
+        // Send the posts as a JSON response
+        return res.status(200).json(allPosts);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send('Server error');
+    }
+
+})
+
+// get post for profile posts 
+router.get('/timeline',  async (req, res) => {
+    try {
+        
+        const allPosts = await Post.find({ user:req.user.userId});
 
         // Send the posts as a JSON response
         return res.json(allPosts);
@@ -189,6 +210,7 @@ router.get('/allposts/:id', authrize, async (req, res) => {
     }
 
 })
+
 
 
 

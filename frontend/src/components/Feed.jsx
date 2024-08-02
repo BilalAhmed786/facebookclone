@@ -1,5 +1,5 @@
 // src/components/Feed.jsx
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Textbox from './Textbox';
 import { toast } from 'react-toastify';
@@ -8,7 +8,7 @@ import { FaCamera, FaComment, FaShare, FaHeart } from 'react-icons/fa';
 const Feed = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [uploadStatus, setUploadStatus] = useState('');
+  const [postdata, setPostdata] = useState([]);
   const fileInputRef = useRef(null);
 
   const handleButtonClick = () => {
@@ -16,9 +16,7 @@ const Feed = () => {
   };
 
   const handleFileChange = (event) => {
-   
     const files = Array.from(event.target.files);
-
     setSelectedFiles(files); // Update the state with selected files
 
     if (files.length === 0) {
@@ -42,13 +40,24 @@ const Feed = () => {
       });
       toast.success(response.data);
       setSelectedFiles([]); // Clear the selected files after successful upload
-    } 
-    catch (error) {
-     
+    } catch (error) {
       toast.error(error.response.data);
-
     }
   };
+
+  // Retrieve data for user posts
+  useEffect(() => {
+    const postRetrieve = async () => {
+      try {
+        const result = await axios.get('/api/posts/allposts');
+        setPostdata(result.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    postRetrieve();
+  }, []);
 
   return (
     <div className="w-full flex-[2] bg-white p-4 h-screen">
@@ -92,37 +101,50 @@ const Feed = () => {
         {/* Textbox component for additional UI elements */}
         {isVisible && <Textbox setIsVisible={setIsVisible} isVisible={isVisible} />}
       </div>
-      {/* Example Post */}
-      <div className="mb-4 p-4 border rounded shadow-sm">
-        <div className="flex items-center space-x-2 mb-4">
-          <img src="user-avatar-url" alt="User" className="w-10 h-10 rounded-full" />
-          <div>
-            <h2 className="font-bold">User Name</h2>
-            <p className="text-gray-500 text-sm">5 mins ago</p>
-          </div>
-        </div>
-        <p className="mb-4">Post content goes here...</p>
-        <img src="post-image-url" alt="Post" className="w-full rounded mb-4" />
-
-        <div className="flex justify-between items-center">
-          <div className="flex space-x-4">
-            <div className="flex items-center space-x-1">
-              <FaHeart className="text-red-500" />
-              <span>32</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <FaComment className="text-gray-500" />
-              <span>9</span>
+      {/* Render Posts Dynamically */}
+      {postdata.map((post) => (
+        <div key={post._id} className="mb-4 p-4 border rounded shadow-sm">
+          <div className="flex  items-center space-x-2 mb-4">
+            <img src="user-avatar-url" alt="User" className="w-10 h-10 rounded-full" />
+            <div>
+              <h2 className="font-bold">{post.user.name}</h2>
+              <p className="text-gray-500 text-sm">{new Date(post.createdAt).toLocaleString()}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-1">
-            <FaShare className="text-blue-500" />
-            <span>Share</span>
+          <div className="flex flex-wrap m-5 mb-4">
+          {post.text.map((item, index) => {
+            
+       const imageUrl = `http://localhost:4000/uploads/${item}`;
+   // Log the image URL for debugging
+  return (
+    item.includes('.jpeg' || '.png') ? (
+     
+      <img className="w-40 m-2 rounded mb-4" key={index} src={imageUrl} alt="Post" />
+      
+    ) : (
+      <div key={index} className={`w-full p-5 h-60 ${post.bgcolor} ${!post.bgcolor? 'text-black':'text-white'} font-semibold outline-none text-lg p-2 rounded-md`}>{item}</div>
+    )
+  );
+})}
+          </div>
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-4">
+              <div className="flex items-center space-x-1">
+                <FaHeart className="text-red-500" />
+                <span>32</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <FaComment className="text-gray-500" />
+                <span>9</span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-1">
+              <FaShare className="text-blue-500" />
+              <span>Share</span>
+            </div>
           </div>
         </div>
-      </div>
-      {/* Additional Example Posts */}
-      {/* ... Other example posts can follow the same structure */}
+      ))}
     </div>
   );
 };

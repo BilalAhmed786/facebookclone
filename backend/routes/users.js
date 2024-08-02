@@ -74,10 +74,27 @@ router.delete('/:id', async (req, res) => {
 
 })
 
-router.get('/:id', async (req, res) => {
+router.get('singleuser/:id', async (req, res) => {
     try {
 
         const finduser = await User.findOne({ _id: req.params.id }, { password: 0, retypepassword: 0 })
+
+
+        return res.json(finduser)
+
+    } catch (error) {
+
+        console.log(error)
+    }
+
+
+})
+
+
+router.get('/onlineuser', async (req, res) => {
+    try {
+
+        const finduser = await User.find({ _id:{$ne:req.user.userId}  }, { password: 0, retypepassword: 0 })
 
 
         return res.json(finduser)
