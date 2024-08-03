@@ -55,7 +55,7 @@ const PostBox = ({ setIsVisible, isVisible }) => {
 
     return (
 
-        <div className="w-full p-4 bg-white rounded-md shadow-md absolute -top-3">
+        <div className="w-full z-10 p-4 bg-white rounded-md shadow-md absolute -top-3">
             <button
                 onClick={handleClose}
                 className="absolute top-2 right-1 text-gray-500 hover:text-gray-700"

@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const authrize = require('../middleware/verifyuser');
@@ -25,23 +26,39 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
+//during edit files upload
+router.post('/editupload', upload.array('files', 10), authrize, async (req, res) => {
+
+    if (!req.files || req.files.length === 0) {
+
+        return res.status(400).send('No files uploaded.');
+
+    }
+
+    const files = req.files.map(res => res.filename)
+
+
+    return res.json(files)
+
+})
 
 
 router.post('/upload', upload.array('files', 10), authrize, async (req, res) => {
-   
-    if (!req.files || req.files.length === 0) {
-   
-        return res.status(400).send('No files uploaded.');
-   
-     }
 
-      const files = req.files.map(res=>res.filename)
-   
+    if (!req.files || req.files.length === 0) {
+
+        return res.status(400).send('No files uploaded.');
+
+    }
+
+    const files = req.files.map(res => res.filename)
+
+
     try {
         const post = new Post({
             user: req.user.userId,
-            text:files,
-        
+            text: files,
+
         });
 
         const postsaved = await post.save();
@@ -53,10 +70,10 @@ router.post('/upload', upload.array('files', 10), authrize, async (req, res) => 
 
     } catch (err) {
         console.error(err.message);
-      
+
         res.status(500).send('Server error');
     }
-    
+
 });
 
 
@@ -92,7 +109,8 @@ router.post('/', async (req, res) => {
 
 
 // Get single posts
-router.get('singlepost/:id', async (req, res) => {
+router.get('/singlepost/:id', async (req, res) => {
+    console.log(req.params.id)
     try {
         const post = await Post.findById(req.params.id).populate('user').select('-password -retypepasword').populate('comments');
 
@@ -114,7 +132,7 @@ router.delete('/:id', async (req, res) => {
 
         const post = await Post.findById(req.params.id)
 
-        if (post.user.toString() === req.body.userId) {
+        if (post.user.toString() === req.user.userId) {
 
 
             await post.deleteOne()
@@ -132,8 +150,53 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
+//update post
+
+router.post('/updatepost', async (req, res) => {
+    try {
+
+        const post = await Post.findById(req.body.editId)
+
+        const filterfiles = post.text.filter(file => !req.body.text.includes(file));
+
+
+        const removefiles = filterfiles.map((files) => {
+           
+            const filePath = path.join(__dirname, '../public/uploads', files);
+
+            fs.unlink(filePath,(err)=>{
+
+                if(err){
+
+                    console.log(err)
+                }
+            })
+
+        })
+
+        if (removefiles) {
+
+            console.log('files removed')
+        }
+
+
+        post.text = req.body.text;
+        post.bgcolor = req.body.bgcolor; // Assuming bgcolor is also updated
+
+        await post.save();
+
+        res.send('Post updated successfully');
+
+    } catch (error) {
+
+        console.log(error)
+    }
+
+
+})
+
 //like unlike a post 
-router.put('/like/:id',async (req, res) => {
+router.put('/like/:id', async (req, res) => {
 
     try {
 
@@ -167,12 +230,12 @@ router.put('/like/:id',async (req, res) => {
 
 router.get('/allposts', async (req, res) => {
 
-    
-    try {
-        
-            const user = await User.findById(req.user.userId);
 
-       
+    try {
+
+        const user = await User.findById(req.user.userId);
+
+
         // Find the user by ID from the request body
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
@@ -188,7 +251,7 @@ router.get('/allposts', async (req, res) => {
         const allPosts = await Post.find({ user: { $in: followingUsers } }).populate('user');
 
         // Send the posts as a JSON response
-        return res.status(200).json(allPosts);
+        return res.status(200).json({ allPosts: allPosts, Userid: user._id });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Server error');
@@ -197,10 +260,10 @@ router.get('/allposts', async (req, res) => {
 })
 
 // get post for profile posts 
-router.get('/timeline',  async (req, res) => {
+router.get('/timeline', async (req, res) => {
     try {
-        
-        const allPosts = await Post.find({ user:req.user.userId});
+
+        const allPosts = await Post.find({ user: req.user.userId });
 
         // Send the posts as a JSON response
         return res.json(allPosts);
