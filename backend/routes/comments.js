@@ -41,6 +41,45 @@ router.post('/comment/:id', async (req, res) => {
     }
 });
 
+//add comment reply
+router.post('/reply/:commentId', async (req, res) => {
+    const { commentId } = req.params;
+    const { text } = req.body;
+    const userId = req.user.userId; // Assuming you have user authentication and the user's ID is available in req.user
+
+  if (!text) {
+    return res.status(400).json({ message: 'Reply text is required' });
+  }
+
+  try {
+    // Find the comment by its ID
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    // Create a new reply object
+    const newReply = {
+      user: userId,
+      text: text,
+      likes: [],
+      replies: []
+    };
+
+    // Add the new reply to the replies array of the comment
+    comment.replies.push(newReply);
+
+    // Save the updated comment
+     await comment.save();
+
+    res.status(201).json({ message: 'Reply added successfully', reply: newReply });
+  } catch (error) {
+    console.error('Error adding reply to comment:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+  });
+
 // get comment for single user who wants to edit comment
 router.get('/singlecomment/:id', async (req, res) => {
 

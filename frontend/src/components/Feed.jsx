@@ -4,55 +4,7 @@ import Textbox from './Textbox';
 import Postedit from './Postedit';
 import { toast } from 'react-toastify';
 import { format } from 'timeago.js';
-import { FaCamera,FaReply, FaComment, FaShare, FaHeart, FaEllipsisH, FaEdit, FaTrash, FaChevronDown, FaChevronUp } from 'react-icons/fa';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbsUp } from '@fortawesome/free-solid-svg-icons';
-
-
-// Separate component for rendering comments and replies
-const CommentSection = ({ comments, postId, handleReply, replyText, replyInputVisibility, setReplyText, setReplyInputVisibility }) => {
-  return (
-    <div className="flex flex-col space-y-2">
-      {comments.map((comment) => (
-        <div key={comment._id} className="flex flex-col space-y-2">
-          <div className="flex items-center space-x-2">
-            <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
-            <div className="bg-gray-100 p-2 rounded">
-              <p className="font-bold">{comment.user.name}</p>
-              <p>{comment.text}</p><span><FontAwesomeIcon className='text-blue-500 cursor-pointer' icon={faThumbsUp}/></span>
-            </div>
-            <button
-              onClick={() => setReplyInputVisibility(prev => ({ ...prev, [comment._id]: !prev[comment._id] }))}
-              className="text-gray-500 ml-2"
-            >
-              <FaReply className='text-blue-500'/>
-            </button>
-          </div>
-          {replyInputVisibility[comment._id] && (
-            <form onSubmit={(e) => { e.preventDefault(); handleReply(comment._id); }}>
-              <input
-                type="text"
-                placeholder="Write a reply..."
-                value={replyText[comment._id] || ''}
-                onChange={(e) => setReplyText(prev => ({ ...prev, [comment._id]: e.target.value }))}
-                className="w-full p-2 rounded bg-gray-200 focus:outline-none focus:bg-white"
-              />
-            </form>
-          )}
-          {comment.replies && comment.replies.map((reply, index) => (
-            <div key={index} className="flex items-center space-x-2 ml-8">
-              <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
-              <div className="bg-gray-100 p-2 rounded">
-                <p className="font-bold">{reply.user.name}</p>
-                <p>{reply.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-};
+import { FaCamera, FaComment, FaShare, FaHeart, FaEllipsisH, FaEdit, FaTrash } from 'react-icons/fa';
 
 const Feed = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -64,14 +16,11 @@ const Feed = () => {
   const [postdata, setPostdata] = useState([]);
   const [userinfo, setUser] = useState('');
   const [commentText, setCommentText] = useState('');
-  const [showComments, setShowComments] = useState({});
-  const [replyText, setReplyText] = useState({});
-  const [replyInputVisibility, setReplyInputVisibility] = useState({});
   const fileInputRef = useRef(null);
   const dropdownRefs = useRef({});
 
   const handleButtonClick = () => {
-    fileInputRef.current.click();
+    fileInputRef.current.click(); // Trigger the hidden file input click
   };
 
   const handleFileChange = (event) => {
@@ -80,7 +29,7 @@ const Feed = () => {
     if (validFiles.length !== files.length) {
       toast.error('Only JPG and PNG formats are allowed.');
     }
-    setSelectedFiles(validFiles);
+    setSelectedFiles(validFiles); // Update the state with valid files
   };
 
   const removeImage = (index) => {
@@ -107,18 +56,19 @@ const Feed = () => {
         },
       });
       toast.success(response.data);
-      setSelectedFiles([]);
+      setSelectedFiles([]); // Clear the selected files after successful upload
     } catch (error) {
       toast.error(error.response.data);
     }
   };
 
+  // Retrieve data for user posts
   useEffect(() => {
     const postRetrieve = async () => {
       try {
         const result = await axios.get('/api/posts/allposts');
-        setPostdata(result.data.allPosts);
-        setUser(result.data.Userid);
+        setPostdata(result.data.allPosts); // all data 
+        setUser(result.data.Userid); // current userid
       } catch (error) {
         console.log(error);
       }
@@ -145,6 +95,7 @@ const Feed = () => {
     };
   }, [selectedFiles, editVisible, postdelete]);
 
+  // Get current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -176,7 +127,7 @@ const Feed = () => {
   };
 
   const toggleDropdown = (postId, e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent event propagation
     setPostdata(prevData =>
       prevData.map(post =>
         post._id === postId ? { ...post, isDropdownOpen: !post.isDropdownOpen } : post
@@ -196,48 +147,16 @@ const Feed = () => {
   const handleComment = async (postId) => {
     try {
       const result = await axios.post(`/api/comments/comment/${postId}`, { text: commentText });
-      if (result.data) {
-        setCommentText('');
-        setPostdata(prevData =>
-          prevData.map(post =>
-            post._id === postId
-              ? { ...post, comments: [...post.comments, result.data] }
-              : post
-          )
-        );
-      }
+      toast.success(result.data.message);
+      setCommentText('');
     } catch (error) {
       toast.error('Error adding comment');
     }
-  };
-
-  const handleReply = async (commentId) => {
-    try {
-      const result = await axios.post(`/api/comments/reply/${commentId}`, { text: replyText[commentId] });
-      if (result.data) {
-        setReplyText(prev => ({ ...prev, [commentId]: '' }));
-        setPostdata(prevData =>
-          prevData.map(post => ({
-            ...post,
-            comments: post.comments.map(comment =>
-              comment._id === commentId
-                ? { ...comment, replies: [...comment.replies, result.data] }
-                : comment
-            )
-          }))
-        );
-      }
-    } catch (error) {
-      toast.error('Error replying to comment');
-    }
-  };
-
-  const toggleCommentsVisibility = (postId) => {
-    setShowComments(prev => ({ ...prev, [postId]: !prev[postId] }));
-  };
+  }
 
   return (
     <div className="w-full flex-[2] bg-white p-4 h-screen">
+      {/* Share Post Box */}
       <div className="relative">
         <div className="mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2">
@@ -292,8 +211,10 @@ const Feed = () => {
             </div>
           </form>
         </div>
+        {/* Textbox component for additional UI elements */}
         {isVisible && <Textbox setIsVisible={setIsVisible} isVisible={isVisible} />}
       </div>
+      {/* Render Posts Dynamically */}
       {postdata.map((post) => (
         <div key={post._id} className="relative mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2 mb-4">
@@ -310,7 +231,7 @@ const Feed = () => {
                 <div
                   ref={el => (dropdownRefs.current[post._id] = el)}
                   className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()} // Prevent event propagation
                 >
                   <button
                     onClick={() => handleEdit(post._id)}
@@ -356,32 +277,40 @@ const Feed = () => {
           </div>
           <div className="flex justify-between items-center mb-2">
             <div className="flex space-x-4">
-              <button className="flex items-center space-x-1" onClick={() => handleLike(post._id)}>
+              <button className="flex items-center space-x-1" onClick={() => handleLike(post._id, userinfo)}>
                 <FaHeart className="text-red-500" />
                 <span>{post.likes.length}</span>
               </button>
-              <button className="flex items-center space-x-1" onClick={() => toggleCommentsVisibility(post._id)}>
+              <div className="flex items-center space-x-1">
                 <FaComment className="text-gray-500" />
                 <span>{post.comments.length}</span>
-                {showComments[post._id] ? <FaChevronUp /> : <FaChevronDown />}
-              </button>
+              </div>
             </div>
             <div className="flex items-center space-x-1">
               <FaShare className="text-blue-500" />
               <span>Share</span>
             </div>
           </div>
-          {showComments[post._id] && (
-            <CommentSection
-              comments={post.comments}
-              postId={post._id}
-              handleReply={handleReply}
-              replyText={replyText}
-              replyInputVisibility={replyInputVisibility}
-              setReplyText={setReplyText}
-              setReplyInputVisibility={setReplyInputVisibility}
-            />
-          )}
+          <div className="flex flex-col space-y-2">
+            {post.comments.map((comment, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
+                <div className="bg-gray-100 p-2 rounded">
+                  <p className="font-bold">{comment.user.name}</p>
+                  <p>{comment.text}</p>
+                </div>
+              </div>
+            ))}
+            <form onSubmit={(e) => { e.preventDefault(); handleComment(post._id); }}>
+              <input
+                type="text"
+                placeholder="Write a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="w-full p-2 rounded bg-gray-200 focus:outline-none focus:bg-white"
+              />
+            </form>
+          </div>
         </div>
       ))}
       {editVisible && <Postedit seteditVisible={seteditVisible} editVisible={editVisible} editId={editId} />}
