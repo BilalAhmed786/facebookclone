@@ -1,5 +1,5 @@
 // Topbar.jsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaUser, FaComment, FaBell } from 'react-icons/fa';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,7 +7,32 @@ import axios from 'axios';
 const Topbar = () => {
 
   const [togglemenu, stateTogglemenu] = useState(false)
+  const[userinfo,stateUserinfo] =useState({})
   const navigate = useNavigate()
+
+
+  useEffect(()=>{
+
+    const userinfo = async()=>{
+     
+      try{
+
+        const user = await axios.get('/api/auth/userinfo')
+           
+          stateUserinfo(user.data)
+
+      }catch(error){
+
+        console.log(error)
+      }
+
+
+
+    }
+
+    userinfo()
+
+  },[userinfo])
   
   const toggleMenu = () => {
 
@@ -78,12 +103,12 @@ const Topbar = () => {
           </div>
           {/* Profile Picture */}
           <div onClick={toggleMenu}>
-            <div style={{ display: togglemenu ? 'block' : 'none' }}
+            <div style={{ display: togglemenu ? 'block' : 'none', zIndex:'9999' }}
               className='absolute bg-blue-600 mt-12 ml-2 p-5'>
               <ul className='w-full -mt-3'>
                 <li
                   className='w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300'>
-                  <Link to='/profile' >Profile</Link>
+                  <Link to={`/profile/${userinfo._id}`} >Profile</Link>
                 </li>
                 <li className='w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300' >
                   <Link onClick={Logout}>Logout</Link>
@@ -91,8 +116,9 @@ const Topbar = () => {
               </ul>
             </div>
             <img
+              src={`http://localhost:4000/uploads/${userinfo.profilepicture}`}
               alt="Profile"
-              className="w-8 h-8 ml-6 cursor-pointer rounded-full"
+              className="w-12 h-12 object-cover ml-6 cursor-pointer rounded-full"
             />
           </div>
         </div>

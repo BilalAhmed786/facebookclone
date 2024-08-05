@@ -2,6 +2,9 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const fs = require('fs');
+const path = require('path')
+const upload = require('../multer/multer')
 
 const router = express.Router();
 
@@ -74,7 +77,8 @@ router.delete('/:id', async (req, res) => {
 
 })
 
-router.get('singleuser/:id', async (req, res) => {
+router.get('/singleuser/:id', async (req, res) => {
+            
     try {
 
         const finduser = await User.findOne({ _id: req.params.id }, { password: 0, retypepassword: 0 })
@@ -177,6 +181,85 @@ router.put('/unfollow/:id', async (req, res) => {
     }
 
 
+
+
+})
+
+// api for profile cover photo
+
+router.post('/uploadcover',upload.single('file'),async(req,res)=>{
+
+    
+    const user = await User.findById(req.user.userId)
+
+    if (!req.file || req.file.length === 0) {
+
+        return res.status(400).send('No files uploaded.');
+
+    }
+
+         const filepath =  path.join(__dirname,'../public/uploads',user.coverpicture)
+             
+          fs.unlink(filepath,(err)=>{
+
+            if(err){
+               
+                throw err
+            }else{
+
+                console.log('previous cover remove')
+            }
+
+        
+          })
+
+        user.coverpicture = req.file.filename;
+
+        const usercoverpic = await user.save()
+
+    if(usercoverpic){
+
+        return res.json('Cover pic updated')
+    }
+
+
+})
+
+
+router.post('/uploadprofile',upload.single('file'),async(req,res)=>{
+
+    
+    const user = await User.findById(req.user.userId)
+
+    if (!req.file || req.file.length === 0) {
+
+        return res.status(400).send('No files uploaded.');
+
+    }
+
+    const filepath =  path.join(__dirname,'../public/uploads',user.profilepicture)
+             
+          fs.unlink(filepath,(err)=>{
+
+            if(err){
+               
+                throw err
+            }else{
+
+                console.log('previous profile pic remove')
+            }   
+
+        
+          })
+
+        user.profilepicture = req.file.filename;
+
+        const userprofilepic = await user.save()
+
+    if(userprofilepic){
+
+        return res.json('profile pic updated')
+    }
 
 
 })

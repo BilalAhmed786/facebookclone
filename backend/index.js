@@ -17,7 +17,7 @@ app.use(express.urlencoded({extended:true}))
 app.use(express.static(path.join(__dirname,'public')))
 app.use('/api/auth', authRoutes);
 app.use('/api/posts',authrize, postRoutes);
-app.use('/api/comments',authrize, commentRoutes);
+app.use('/api/comments',authrize,commentRoutes);
 app.use('/api/users',authrize, usersRoutes);
 
 app.listen(process.env.PORT, () => {

@@ -26,7 +26,7 @@ useEffect(() => {
                 
                 if(error.name){
 
-                    navigate('/login')
+                    navigate('/')
                 }
                 
             

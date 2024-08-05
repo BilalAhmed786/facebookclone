@@ -1,33 +1,15 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Post = require('../models/Post');
 const User = require('../models/User');
-const authrize = require('../middleware/verifyuser');
-const { request } = require('https');
-
-// Set up multer for file storage
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-
-        cb(null, 'public/uploads');
-    },
-    filename: (req, file, cb) => {
-
-        cb(null, `${file.originalname}`);
-
-    }
-});
-
-const upload = multer({ storage });
-
-
+const upload = require('../multer/multer');
 const router = express.Router();
 
 //during edit files upload
-router.post('/editupload', upload.array('files', 10), authrize, async (req, res) => {
+
+router.post('/editupload', upload.array('files', 10),async (req, res) => {
 
     if (!req.files || req.files.length === 0) {
 
@@ -43,7 +25,7 @@ router.post('/editupload', upload.array('files', 10), authrize, async (req, res)
 })
 
 
-router.post('/upload', upload.array('files', 10), authrize, async (req, res) => {
+router.post('/upload', upload.array('files', 10),async (req, res) => {
 
     if (!req.files || req.files.length === 0) {
 
@@ -110,6 +92,7 @@ router.post('/', async (req, res) => {
 
 // Get single posts
 router.get('/singlepost/:id', async (req, res) => {
+   
     console.log(req.params.id)
     try {
         const post = await Post.findById(req.params.id).populate('user').select('-password -retypepasword').populate('comments');
@@ -198,20 +181,25 @@ router.post('/updatepost', async (req, res) => {
 //like unlike a post 
 router.put('/like/:id', async (req, res) => {
 
+   
     try {
 
-        const post = await Post.findById(req.user.id)
+        const post = await Post.findById(req.params.id)
+        
 
-        if (!post.likes.includes(req.body.userId)) {
+        if (!post.likes.includes(req.user.userId)) {
 
-            await Post.updateOne({ $push: { likes: req.body.userId } })
+            post.likes.push(req.user.userId)
+
+            await post.save()
 
             return res.json('post liked')
-        } else {
+        }else {
 
-
-            await Post.updateOne({ $pull: { likes: req.body.userId } })
-
+            post.likes.pull(req.user.userId)
+         
+            await post.save()
+            
             return res.json('post unliked')
 
         }
@@ -248,7 +236,16 @@ router.get('/allposts', async (req, res) => {
         followingUsers.push(user._id.toString());
 
         // Find all posts from the current user and the users they are following
-        const allPosts = await Post.find({ user: { $in: followingUsers } }).populate('user');
+        const allPosts = await Post.find({ user: { $in: followingUsers } }).sort({createdAt:-1}).populate('user')
+        .populate({
+            path:'comments',
+            populate:{
+             path:'user',
+             select: 'name profilepicture' 
+                
+            }
+
+        });
 
         // Send the posts as a JSON response
         return res.status(200).json({ allPosts: allPosts, Userid: user._id });
@@ -260,10 +257,10 @@ router.get('/allposts', async (req, res) => {
 })
 
 // get post for profile posts 
-router.get('/timeline', async (req, res) => {
+router.get('/timeline/:id', async (req, res) => {
     try {
 
-        const allPosts = await Post.find({ user: req.user.userId });
+        const allPosts = await Post.find({ user: req.params.id }).sort({createdAt:-1}).populate('user').populate('comments');
 
         // Send the posts as a JSON response
         return res.json(allPosts);

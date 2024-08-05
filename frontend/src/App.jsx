@@ -15,10 +15,10 @@ const App = () => {
     <BrowserRouter>
       
     <Routes>  
-    <Route path="/login" element={<Loginregister Component={Login} />} />
+    <Route path="/" element={<Loginregister Component={Login} />} />
     <Route path="/register" element={<Loginregister Component={Register} />} />
     <Route path="/home" element={<Protecteduser Component={Home} />} />
-    <Route path="/profile" element={<Protecteduser Component={Profile} />} />
+    <Route path="/profile/:id" element={<Protecteduser Component={Profile} />} />
     <Route path="*" element={<PageNotFound/>} />
     </Routes>
 

@@ -11,7 +11,7 @@ const PageNotFound = () => {
           Oops! The page you are looking for does not exist.
         </p>
         <Link
-          to="/login"
+          to="/"
           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-lg font-medium rounded-md shadow hover:bg-blue-700 transition-colors duration-200"
         >
           <FaHome className="mr-2" />
