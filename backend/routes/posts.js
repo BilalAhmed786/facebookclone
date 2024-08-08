@@ -9,7 +9,7 @@ const router = express.Router();
 
 //during edit files upload
 
-router.post('/editupload', upload.array('files', 10),async (req, res) => {
+router.post('/editupload', upload.array('files', 10), async (req, res) => {
 
     if (!req.files || req.files.length === 0) {
 
@@ -25,7 +25,7 @@ router.post('/editupload', upload.array('files', 10),async (req, res) => {
 })
 
 
-router.post('/upload', upload.array('files', 10),async (req, res) => {
+router.post('/upload', upload.array('files', 10), async (req, res) => {
 
     if (!req.files || req.files.length === 0) {
 
@@ -92,7 +92,7 @@ router.post('/', async (req, res) => {
 
 // Get single posts
 router.get('/singlepost/:id', async (req, res) => {
-   
+
     console.log(req.params.id)
     try {
         const post = await Post.findById(req.params.id).populate('user').select('-password -retypepasword').populate('comments');
@@ -144,12 +144,12 @@ router.post('/updatepost', async (req, res) => {
 
 
         const removefiles = filterfiles.map((files) => {
-           
+
             const filePath = path.join(__dirname, '../public/uploads', files);
 
-            fs.unlink(filePath,(err)=>{
+            fs.unlink(filePath, (err) => {
 
-                if(err){
+                if (err) {
 
                     console.log(err)
                 }
@@ -181,11 +181,11 @@ router.post('/updatepost', async (req, res) => {
 //like unlike a post 
 router.put('/like/:id', async (req, res) => {
 
-   
+
     try {
 
         const post = await Post.findById(req.params.id)
-        
+
 
         if (!post.likes.includes(req.user.userId)) {
 
@@ -194,12 +194,12 @@ router.put('/like/:id', async (req, res) => {
             await post.save()
 
             return res.json('post liked')
-        }else {
+        } else {
 
             post.likes.pull(req.user.userId)
-         
+
             await post.save()
-            
+
             return res.json('post unliked')
 
         }
@@ -236,16 +236,32 @@ router.get('/allposts', async (req, res) => {
         followingUsers.push(user._id.toString());
 
         // Find all posts from the current user and the users they are following
-        const allPosts = await Post.find({ user: { $in: followingUsers } }).sort({createdAt:-1}).populate('user')
-        .populate({
-            path:'comments',
-            populate:{
-             path:'user',
-             select: 'name profilepicture' 
-                
-            }
+        const allPosts = await Post.find({ user: { $in: followingUsers } }).sort({ createdAt: -1 }).populate('user')
+            .populate({
+                path: 'comments',
 
-        });
+                populate: [
+                    {
+                        path: 'user',
+                        select: 'name profilepicture'
+                    },
+                    {
+                        path: 'replies.user',
+                        select: 'name profilepicture'
+                    },
+
+                    {
+                        path: 'replies.replies',
+                        populate: {
+                            path: 'user',
+                            select: 'name profilepicture'
+                        }
+                    }
+
+
+                ]
+
+            });
 
         // Send the posts as a JSON response
         return res.status(200).json({ allPosts: allPosts, Userid: user._id });
@@ -260,7 +276,7 @@ router.get('/allposts', async (req, res) => {
 router.get('/timeline/:id', async (req, res) => {
     try {
 
-        const allPosts = await Post.find({ user: req.params.id }).sort({createdAt:-1}).populate('user').populate('comments');
+        const allPosts = await Post.find({ user: req.params.id }).sort({ createdAt: -1 }).populate('user').populate('comments');
 
         // Send the posts as a JSON response
         return res.json(allPosts);

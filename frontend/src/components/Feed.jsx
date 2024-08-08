@@ -4,7 +4,7 @@ import Textbox from './Textbox';
 import Postedit from './Postedit';
 import { toast } from 'react-toastify';
 import { format } from 'timeago.js';
-import { FaCamera, FaComment, FaShare, FaHeart, FaEllipsisH, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaCamera, FaComment, FaShare, FaHeart, FaEllipsisH, FaEdit, FaTrash, FaReply } from 'react-icons/fa';
 
 const Feed = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -18,6 +18,8 @@ const Feed = () => {
   const [commentText, setCommentText] = useState('');
   const fileInputRef = useRef(null);
   const dropdownRefs = useRef({});
+
+  console.log(postdata)
 
   const handleButtonClick = () => {
     fileInputRef.current.click(); // Trigger the hidden file input click
@@ -154,11 +156,47 @@ const Feed = () => {
     }
   }
 
+  const handleReply = async (commentId, replyText, postId) => {
+    
+    try {
+      const result = await axios.post(`/api/comments/reply/${commentId}`, { text: replyText });
+      toast.success(result.data.message);
+      setPostdata(prevData =>
+        prevData.map(post =>
+          post._id === postId ? { ...post, comments: post.comments.map(comment => comment._id === commentId ? { ...comment, replies: [...comment.replies, result.data.reply] } : comment) } : post
+        )
+      );
+    } catch (error) {
+      toast.error('Error adding reply');
+    }
+  };
+
+  const handleReply2Reply = async (replyText,replyid,commentid) => {
+
+    try {
+      const result = await axios.post('/api/comments/reply2reply', { text: replyText,replyid,commentid });
+      
+      toast.success(result.data);
+  
+    } catch (error) {
+      toast.error('Error adding reply');
+    }
+  };
+
+  const handleLikeComment = async (commentId) => {
+    try {
+      const result = await axios.put(`/api/comments/like/${commentId}`);
+      toast.success(result.data);
+    } catch (error) {
+      toast.error('Error liking comment');
+    }
+  };
+
   return (
     <div className="w-full flex-[2] bg-white p-4 h-screen">
       {/* Share Post Box */}
       <div className="relative">
-        <div className="mb-4 p-4 border rounded shadow-sm">
+        <div  className="mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2">
             <img src={`http://localhost:4000/uploads/${currentuser.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
             <input
@@ -293,12 +331,59 @@ const Feed = () => {
           </div>
           <div className="flex flex-col space-y-2">
             {post.comments.map((comment, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
-                <div className="bg-gray-100 p-2 rounded">
-                  <p className="font-bold">{comment.user.name}</p>
-                  <p>{comment.text}</p>
+              <div key={index} className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
+                  <div className="bg-gray-100 p-2 rounded flex-1">
+                    <p className="font-bold">{comment.user.name}</p>
+                    <p>{comment.text}</p>
+                  </div>
+                  <button onClick={() => handleLikeComment(comment._id)} className="flex items-center space-x-1 text-red-500">
+                    <FaHeart />
+                    <span>{comment.likes.length}</span>
+                  </button>
+                  <button onClick={() => handleReply(comment._id, prompt("Enter your reply:"), post._id)} className="flex items-center space-x-1 text-blue-500">
+                    <FaReply />
+                    <span>Reply</span>
+                  </button>
                 </div>
+                {comment.replies && comment.replies.map((reply, replyIndex) => (
+                  <>
+                  <div key={replyIndex} className="flex items-center space-x-2 ml-8">
+                    <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                    <div className="bg-gray-200 p-2 rounded flex-1">
+                      <p className="font-bold">{reply.user.name}</p>
+                      <p>{reply.text}</p>
+                    </div>
+                    <button onClick={() => handleLikeComment(reply._id)} className="flex items-center space-x-1 text-red-500">
+                      <FaHeart />
+                      <span>{reply.likes.length}</span>
+                    </button>
+                    <button onClick={() => handleReply2Reply(prompt("Enter your reply:"),reply._id,comment._id)} className="flex items-center space-x-1 text-blue-500">
+                    <FaReply />
+                    <span>Reply</span>
+                  </button>
+                  </div>
+                  {reply.replies.map((replies)=>(
+                     <div key={replyIndex} className="flex items-center space-x-2 ml-14">
+                     <img src={`http://localhost:4000/uploads/${replies.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                     <div className="bg-gray-200 p-2 rounded flex-1">
+                       <p className="font-bold">{replies.user.name}</p>
+                       <p>{replies.text}</p>
+                     </div>
+                     <button onClick={() => handleLikeComment(replies._id)} className="flex items-center space-x-1 text-red-500">
+                       <FaHeart />
+                       <span>{replies.likes.length}</span>
+                     </button>
+                     <button onClick={() => handleReply2Reply(prompt("Enter your reply:"),reply._id,comment._id)} className="flex items-center space-x-1 text-blue-500">
+                     <FaReply />
+                     <span>Reply</span>
+                   </button>
+                   </div>
+                   ))}
+                  </>
+                ))}
+
               </div>
             ))}
             <form onSubmit={(e) => { e.preventDefault(); handleComment(post._id); }}>

@@ -1,6 +1,7 @@
 const express = require('express');
 const Comment = require('../models/Comment');
 const Post = require('../models/Post');
+const Reply = require('../models/Reply')
 
 
 const router = express.Router();
@@ -47,38 +48,97 @@ router.post('/reply/:commentId', async (req, res) => {
     const { text } = req.body;
     const userId = req.user.userId; // Assuming you have user authentication and the user's ID is available in req.user
 
-  if (!text) {
-    return res.status(400).json({ message: 'Reply text is required' });
-  }
-
-  try {
-    // Find the comment by its ID
-    const comment = await Comment.findById(commentId);
-
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
+    if (!text) {
+        return res.status(400).json({ message: 'Reply text is required' });
     }
 
-    // Create a new reply object
-    const newReply = {
-      user: userId,
-      text: text,
-      likes: [],
-      replies: []
-    };
+    try {
+        // Find the comment by its ID
+        const comment = await Comment.findById(commentId);
 
-    // Add the new reply to the replies array of the comment
-    comment.replies.push(newReply);
+        if (!comment) {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
 
-    // Save the updated comment
-     await comment.save();
+        // Create a new reply object
+        const newReply = {
+            user: userId,
+            text: text,
+            likes: [],
+            replies: []
+        };
 
-    res.status(201).json({ message: 'Reply added successfully', reply: newReply });
-  } catch (error) {
-    console.error('Error adding reply to comment:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-  });
+        // Add the new reply to the replies array of the comment
+        comment.replies.push(newReply);
+
+        // Save the updated comment
+        await comment.save();
+
+        res.status(201).json({ message: 'Reply added successfully', reply: newReply });
+    } catch (error) {
+        console.error('Error adding reply to comment:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+//add commentreply to reply
+
+router.post('/reply2reply', async (req, res) => {
+    console.log(req.body)
+    try {
+        const parentComment = await Comment.findById(req.body.commentid);
+
+        if (!parentComment) {
+           
+            return res.status(404).json({ message: 'Comment not found' });
+        
+        }
+
+        // Find the specific reply within the comment's replies
+        const reply = parentComment.replies.find(reply => reply._id.equals(req.body.replyid));
+
+        if (!reply) {
+            return res.status(404).json({ message: 'Reply not found' });
+        }
+
+        console.log(reply)
+        
+        const newcomment = new Reply({
+
+            user: req.user.userId,
+            text:req.body.text
+
+        })
+
+        const comment = await newcomment.save()
+
+
+        if (!comment) {
+
+
+            return res.status(500).json('server error')
+
+
+        }
+
+            reply.replies.push(comment._id.toString())
+
+            
+            await parentComment.save()
+
+            return res.json('comment saved successfully')
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({ message: error.message });
+
+    }
+
+
+
+})
 
 // get comment for single user who wants to edit comment
 router.get('/singlecomment/:id', async (req, res) => {
@@ -127,9 +187,9 @@ router.put('/updatecomment/:id', async (req, res) => {
 
     if (comment.user.toString() === req.body.userId) {
 
-            await Comment.updateOne({ $set: { text: req.body.text } })
+        await Comment.updateOne({ $set: { text: req.body.text } })
 
-              return res.json('update success')
+        return res.json('update success')
 
     } else {
 
