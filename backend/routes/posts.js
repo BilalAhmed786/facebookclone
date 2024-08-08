@@ -239,7 +239,7 @@ router.get('/allposts', async (req, res) => {
         const allPosts = await Post.find({ user: { $in: followingUsers } }).sort({ createdAt: -1 }).populate('user')
             .populate({
                 path: 'comments',
-
+                options: { sort: { createdAt: -1 } }, 
                 populate: [
                     {
                         path: 'user',

@@ -84,7 +84,7 @@ router.post('/reply/:commentId', async (req, res) => {
 //add commentreply to reply
 
 router.post('/reply2reply', async (req, res) => {
-    console.log(req.body)
+    
     try {
         const parentComment = await Comment.findById(req.body.commentid);
 
@@ -101,11 +101,12 @@ router.post('/reply2reply', async (req, res) => {
             return res.status(404).json({ message: 'Reply not found' });
         }
 
-        console.log(reply)
+       
         
         const newcomment = new Reply({
 
             user: req.user.userId,
+            replyto:req.body.replyto,
             text:req.body.text
 
         })

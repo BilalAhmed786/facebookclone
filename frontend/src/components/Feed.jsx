@@ -16,6 +16,9 @@ const Feed = () => {
   const [postdata, setPostdata] = useState([]);
   const [userinfo, setUser] = useState('');
   const [commentText, setCommentText] = useState('');
+  const [commentsVisible, setCommentsVisible] = useState({});
+  const [childcommentsVisible, setchildCommentsVisible] = useState({});
+  console.log(commentsVisible)
   const fileInputRef = useRef(null);
   const dropdownRefs = useRef({});
 
@@ -157,7 +160,7 @@ const Feed = () => {
   }
 
   const handleReply = async (commentId, replyText, postId) => {
-    
+
     try {
       const result = await axios.post(`/api/comments/reply/${commentId}`, { text: replyText });
       toast.success(result.data.message);
@@ -171,13 +174,13 @@ const Feed = () => {
     }
   };
 
-  const handleReply2Reply = async (replyText,replyid,commentid) => {
+  const handleReply2Reply = async (replyText, replyid, commentid,replyto) => {
 
     try {
-      const result = await axios.post('/api/comments/reply2reply', { text: replyText,replyid,commentid });
-      
+      const result = await axios.post('/api/comments/reply2reply', { text: replyText, replyid, commentid,replyto });
+
       toast.success(result.data);
-  
+
     } catch (error) {
       toast.error('Error adding reply');
     }
@@ -192,11 +195,59 @@ const Feed = () => {
     }
   };
 
+  // Toggle the visibility of comments for a specific post
+  const toggleCommentsVisibility = (postId) => {
+
+    setCommentsVisible((prevState) => ({
+      ...prevState,
+      [postId]: !prevState[postId], // Toggle visibility
+    }));
+  };
+
+// toggle childcomments
+
+const toggleChildcomments =(commentId)=>{
+
+setchildCommentsVisible((prevState)=>({
+...prevState,
+  
+  [commentId]:!prevState[commentId]
+}))
+
+}
+
+
+
+  // this function is used for total nested comments
+
+  const calculateCommentCount = (comments) => {
+    let count = 0;
+
+    const countComments = (comments) => {
+
+      comments.forEach(comment => {
+
+        count += 1; // Count the comment itself
+
+        if (comment.replies && comment.replies.length > 0) {
+
+          countComments(comment.replies); // Recursively count replies
+
+        }
+      });
+    };
+
+    countComments(comments);
+
+    return count;
+  };
+
+
   return (
     <div className="w-full flex-[2] bg-white p-4 h-screen">
       {/* Share Post Box */}
       <div className="relative">
-        <div  className="mb-4 p-4 border rounded shadow-sm">
+        <div className="mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2">
             <img src={`http://localhost:4000/uploads/${currentuser.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
             <input
@@ -253,7 +304,9 @@ const Feed = () => {
         {isVisible && <Textbox setIsVisible={setIsVisible} isVisible={isVisible} />}
       </div>
       {/* Render Posts Dynamically */}
+
       {postdata.map((post) => (
+
         <div key={post._id} className="relative mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2 mb-4">
             <img src={`http://localhost:4000/uploads/${post.user.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
@@ -320,8 +373,8 @@ const Feed = () => {
                 <span>{post.likes.length}</span>
               </button>
               <div className="flex items-center space-x-1">
-                <FaComment className="text-gray-500" />
-                <span>{post.comments.length}</span>
+                <FaComment onClick={() => toggleCommentsVisibility(post._id)} className="text-gray-500 cursor-pointer" />
+                <span>{calculateCommentCount(post.comments)} </span>
               </div>
             </div>
             <div className="flex items-center space-x-1">
@@ -330,57 +383,69 @@ const Feed = () => {
             </div>
           </div>
           <div className="flex flex-col space-y-2">
-            {post.comments.map((comment, index) => (
+            {commentsVisible[post._id] && post.comments.map((comment, index) => (
               <div key={index} className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-2">
                   <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
                   <div className="bg-gray-100 p-2 rounded flex-1">
-                    <p className="font-bold">{comment.user.name}</p>
-                    <p>{comment.text}</p>
-                  </div>
-                  <button onClick={() => handleLikeComment(comment._id)} className="flex items-center space-x-1 text-red-500">
-                    <FaHeart />
-                    <span>{comment.likes.length}</span>
-                  </button>
-                  <button onClick={() => handleReply(comment._id, prompt("Enter your reply:"), post._id)} className="flex items-center space-x-1 text-blue-500">
-                    <FaReply />
-                    <span>Reply</span>
-                  </button>
-                </div>
-                {comment.replies && comment.replies.map((reply, replyIndex) => (
-                  <>
-                  <div key={replyIndex} className="flex items-center space-x-2 ml-8">
-                    <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
-                    <div className="bg-gray-200 p-2 rounded flex-1">
-                      <p className="font-bold">{reply.user.name}</p>
-                      <p>{reply.text}</p>
+                    <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p><span>{format(comment.createdAt)}</span>
+                    {comment.replies.length>0 &&<button onClick={()=>toggleChildcomments(comment._id)} className='ml-9'>{childcommentsVisible[comment._id]? "Hide all comments":"Show all comments"}</button>}
                     </div>
-                    <button onClick={() => handleLikeComment(reply._id)} className="flex items-center space-x-1 text-red-500">
-                      <FaHeart />
-                      <span>{reply.likes.length}</span>
-                    </button>
-                    <button onClick={() => handleReply2Reply(prompt("Enter your reply:"),reply._id,comment._id)} className="flex items-center space-x-1 text-blue-500">
-                    <FaReply />
-                    <span>Reply</span>
-                  </button>
+                    <p>{comment.text}</p>
+                    <div className='flex gap-2'>
+                      <button onClick={() => handleLikeComment(comment._id)} className="flex items-center space-x-1 text-red-500">
+                        <FaHeart />
+                        <span>{comment.likes.length}</span>
+                      </button>
+                      <button onClick={() => handleReply(comment._id, prompt("Enter your reply:"), post._id)} className="flex items-center space-x-1 text-blue-500">
+                        <FaReply />
+                        <span>Reply</span>
+                      </button>
+                    </div>
                   </div>
-                  {reply.replies.map((replies)=>(
-                     <div key={replyIndex} className="flex items-center space-x-2 ml-14">
-                     <img src={`http://localhost:4000/uploads/${replies.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
-                     <div className="bg-gray-200 p-2 rounded flex-1">
-                       <p className="font-bold">{replies.user.name}</p>
-                       <p>{replies.text}</p>
-                     </div>
-                     <button onClick={() => handleLikeComment(replies._id)} className="flex items-center space-x-1 text-red-500">
-                       <FaHeart />
-                       <span>{replies.likes.length}</span>
-                     </button>
-                     <button onClick={() => handleReply2Reply(prompt("Enter your reply:"),reply._id,comment._id)} className="flex items-center space-x-1 text-blue-500">
-                     <FaReply />
-                     <span>Reply</span>
-                   </button>
-                   </div>
-                   ))}
+
+                </div>
+                {childcommentsVisible[comment._id] &&comment.replies.map((reply, replyIndex) => (
+                  <>
+                    <div key={replyIndex} className="flex items-center space-x-2 ml-8">
+                      <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                      <div className="bg-gray-200 p-2 rounded flex-1">
+                        <div className='flex gap-2 text-xs'> <p className="font-bold">{reply.user.name}</p><span>{format(reply.createdAt)}</span></div>
+                        <p>{reply.text}</p>
+                        <div className='flex gap-2'>
+                          <button onClick={() => handleLikeComment(reply._id)} className="flex items-center space-x-1 text-red-500">
+                            <FaHeart />
+                            <span>{reply.likes.length}</span>
+                          </button>
+                          <button onClick={() => handleReply2Reply(prompt("Enter your reply:"), reply._id, comment._id)} className="flex items-center space-x-1 text-blue-500">
+                            <FaReply />
+                            <span>Reply</span>
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+                    {reply.replies.map((replies) => (
+                      <div key={replyIndex} className="flex items-center space-x-2 ml-14">
+                        <img src={`http://localhost:4000/uploads/${replies.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                        <div className="bg-gray-200 p-2 rounded flex-1">
+                          <div className='flex gap-2 text-xs'> <p className="font-bold">{replies.user.name}</p><span>{format(replies.createdAt)}</span></div>
+                         <p className='text-xs'>reply to <span className='text-blue-500 font-semibold'>{replies.replyto}</span></p>
+                          <p>{replies.text}</p>
+                          <div className='flex gap-2'>
+                            <button onClick={() => handleLikeComment(replies._id)} className="flex items-center space-x-1 text-red-500">
+                              <FaHeart />
+                              <span>{replies.likes.length}</span>
+                            </button>
+                            <button onClick={() => handleReply2Reply(prompt("Enter your reply:"), reply._id, comment._id,replies.user.name)} className="flex items-center space-x-1 text-blue-500">
+                              <FaReply />
+                              <span>Reply</span>
+                            </button>
+                          </div>
+                        </div>
+
+                      </div>
+                    ))}
                   </>
                 ))}
 
