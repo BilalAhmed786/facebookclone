@@ -14,7 +14,7 @@ const ProfileRightSidebar = () => {
   };
 
   return (
-    <div className="p-4 bg-white shadow rounded-lg max-w-sm">
+    <div className="p-4 flex-[1] bg-white shadow rounded-lg max-w-sm">
       {isEditing ? (
         <ProfileEdit onClose={handleCloseClick} />
       ) : (

@@ -6,8 +6,6 @@ const Reply = require('../models/Reply')
 
 const router = express.Router();
 
-
-
 // Add a comment to a post
 router.post('/comment/:id', async (req, res) => {
 
@@ -74,7 +72,7 @@ router.post('/reply/:commentId', async (req, res) => {
         // Save the updated comment
         await comment.save();
 
-        res.status(201).json({ message: 'Reply added successfully', reply: newReply });
+        res.status(201).json('Reply added successfully');
     } catch (error) {
         console.error('Error adding reply to comment:', error);
         res.status(500).json({ message: 'Internal server error' });
@@ -107,6 +105,7 @@ router.post('/reply2reply', async (req, res) => {
 
             user: req.user.userId,
             replyto:req.body.replyto,
+            replytomsg:req.body.replytomsg,
             text:req.body.text
 
         })

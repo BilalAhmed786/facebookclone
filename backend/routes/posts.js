@@ -239,7 +239,7 @@ router.get('/allposts', async (req, res) => {
         const allPosts = await Post.find({ user: { $in: followingUsers } }).sort({ createdAt: -1 }).populate('user')
             .populate({
                 path: 'comments',
-                options: { sort: { createdAt: -1 } }, 
+                options: { sort: { createdAt: -1 } },
                 populate: [
                     {
                         path: 'user',
@@ -276,10 +276,45 @@ router.get('/allposts', async (req, res) => {
 router.get('/timeline/:id', async (req, res) => {
     try {
 
-        const allPosts = await Post.find({ user: req.params.id }).sort({ createdAt: -1 }).populate('user').populate('comments');
+        const user = await User.findById(req.user.userId);
+
+
+        // Find the user by ID from the request body
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+
+
+        const allPosts = await Post.find({ user: req.params.id }).sort({ createdAt: -1 }).populate('user')
+            .populate({
+                path: 'comments',
+                options: { sort: { createdAt: -1 } },
+                populate: [
+                    {
+                        path: 'user',
+                        select: 'name profilepicture'
+                    },
+                    {
+                        path: 'replies.user',
+                        select: 'name profilepicture'
+                    },
+
+                    {
+                        path: 'replies.replies',
+                        populate: {
+                            path: 'user',
+                            select: 'name profilepicture'
+                        }
+                    }
+
+
+                ]
+
+            });
 
         // Send the posts as a JSON response
-        return res.json(allPosts);
+        return res.status(200).json({ allPosts: allPosts, Userid: user._id });
     } catch (error) {
         console.error(error.message);
         res.status(500).send('Server error');

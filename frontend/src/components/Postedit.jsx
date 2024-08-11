@@ -126,7 +126,7 @@ const Postedit = ({ seteditVisible, editVisible, editId }) => {
   if (!editVisible) return null;
 
   return (
-    <div className="left-sidebar w-1/2 h-3/4 min-h-80 overflow-auto top-20 z-10 p-8 bg-white rounded-md shadow-md fixed">
+    <div  className="left-sidebar w-1/2 h-3/4 min-h-80 overflow-auto top-24 left-[20.5%]  z-10 p-8 bg-white rounded-md shadow-md fixed">-
       <button
         onClick={handleClose}
         className="absolute top-2 right-1 text-gray-500 hover:text-gray-700"
