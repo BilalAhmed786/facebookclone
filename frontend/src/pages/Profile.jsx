@@ -125,7 +125,7 @@ const Profile = () => {
                         </div>
                     </div>
                     <div className="flex m-14">
-                        <ProfileFeed />
+                        <ProfileFeed profilePic={profilePic} />
                         <ProfileRightsidebar />
                     </div>
                 </div>

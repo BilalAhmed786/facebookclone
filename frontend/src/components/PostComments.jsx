@@ -1,42 +1,71 @@
-import React, { useRef, useState,useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { FaEllipsisH, FaEdit, FaTrash, FaHeart, FaComment, FaShare } from 'react-icons/fa';
-import {format} from 'timeago.js'; // Adjust import as needed
+import { format } from 'timeago.js'; // Adjust import as needed
 import CommentForm from './CommentForm'; // Import your CommentForm component
 import Postedit from './Postedit';
+import CommentEdit from './CommentEdit';
+import Commentreplyedit from './Commentreplyedit';
+import CommentreplytoreplyEdit from './CommentreplytoreplyEdit';
 
 
 const PostComment = ({
-    post,
-    userinfo,
-    handleLike,
-    handleLikeComment,
-    handleReply,
-    handleReply2Reply,
-    handleComment,
-    handleEdit,
-    handleDelete,
-    seteditVisible,
-    editVisible,
-    editId
-    
-    }) => {
-  
-    const dropdownRefs = useRef({});
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [commentsVisible, setCommentsVisible] = useState({});
-    const [childcommentsVisible, setchildCommentsVisible] = useState({});
- 
-        //post menu toggle
+  post,
+  userinfo,
+  handleLike,
+  handleLikeComment,
+  handlecommentreplylike,
+  handlereply2replylike,
+  handleReply,
+  handleReplyfirstchild,
+  handleReply2Reply,
+  handleComment,
+  handlecommentEdit,
+  handlecommentDelete,
+  handlecommentchildEdit,
+  handlecommentchilddelte,
+  handlecommentreplytoreplyEdit,
+  handlecommentreplytoreplyDelete,
+  handleEdit,
+  commenteditVisible,
+  commenteditid,
+  commentreplyid,
+  handleDelete,
+  seteditVisible,
+  seteditCommentvisible,
+  editVisible,
+  editId
 
-    const toggleDropdown = (e) => {
-        
-        e.stopPropagation(); // Prevent event propagation
-        setIsDropdownOpen(!isDropdownOpen);
+}) => {
+
+  const dropdownRefs = useRef({});
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdowncommentOpen, setIsDropdowncommentOpen] = useState({});
+  const [commentsVisible, setCommentsVisible] = useState({});
+  const [childcommentsVisible, setchildCommentsVisible] = useState({});
+
+  //post menu toggle
+
+  const toggleDropdown = (e) => {
+
+    e.stopPropagation(); // Prevent event propagation
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const toggleDropdowncomment = (commentid) => {
+
+    setIsDropdowncommentOpen((prevState) => ({
+
+      ...prevState, [commentid]: !prevState[commentid]
+    }));
+
   };
 
   const handleClickOutside = (event) => {
+
     if (dropdownRefs.current && !dropdownRefs.current.contains(event.target)) {
+
       setIsDropdownOpen(false);
+      setIsDropdowncommentOpen(false);
     }
   };
   useEffect(() => {
@@ -47,29 +76,29 @@ const PostComment = ({
   }, []);
 
 
-// Toggle the visibility of comments for a specific post
-const toggleCommentsVisibility = (postId) => {
+  // Toggle the visibility of comments for a specific post
+  const toggleCommentsVisibility = (postId) => {
 
-        setCommentsVisible((prevState) => ({
-          ...prevState,
-          [postId]: !prevState[postId], // Toggle visibility
-        }));
-      };
+    setCommentsVisible((prevState) => ({
+      ...prevState,
+      [postId]: !prevState[postId], // Toggle visibility
+    }));
+  };
 
-// toggle childcomments
+  // toggle childcomments
 
-    const toggleChildcomments =(commentId)=>{
+  const toggleChildcomments = (commentId) => {
 
-    setchildCommentsVisible((prevState)=>({
-    ...prevState,
-      
-      [commentId]:!prevState[commentId]
+    setchildCommentsVisible((prevState) => ({
+      ...prevState,
+
+      [commentId]: !prevState[commentId]
     }))
-    
-    }
+
+  }
 
 
-    // this function is used for total nested comments
+  // this function is used for total nested comments
 
   const calculateCommentCount = (comments) => {
     let count = 0;
@@ -91,11 +120,11 @@ const toggleCommentsVisibility = (postId) => {
     countComments(comments);
 
     return count;
-  };   
+  };
 
 
   return (
-    
+
     <div className="relative mb-4 p-4 border rounded shadow-sm">
       <div className="flex items-center space-x-2 mb-4">
         <img src={`http://localhost:4000/uploads/${post.user.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
@@ -171,75 +200,182 @@ const toggleCommentsVisibility = (postId) => {
           <span>Share</span>
         </div>
       </div>
-        <div className="flex flex-col space-y-2">
-          {commentsVisible[post._id] && post.comments.map((comment, index) => (
-            <div key={index} className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
-                <div className="bg-gray-100 p-2 rounded flex-1">
-                  <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p><span>{format(comment.createdAt)}</span>
-                  {comment.replies.length>0 &&<button onClick={()=>toggleChildcomments(comment._id)} className='ml-9'>{childcommentsVisible[comment._id]? "Hide all comments":`View all ${calculateCommentCount(comment.replies)} comments`}</button>}
+      <div className="flex flex-col space-y-2">
+        {commentsVisible[post._id] && post.comments.map((comment, index) => (
+          <div key={index} className="flex flex-col space-y-2">
+            <div className="flex items-center space-x-2">
+              <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
+              <div className="bg-gray-100 p-2 relative rounded flex-1">
+                <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p><span>{format(comment.createdAt)}</span>
+                  {comment.replies.length > 0 &&
+                    <button onClick={() => toggleChildcomments(comment._id)}
+                      className='ml-9'>{childcommentsVisible[comment._id] ?
+                        "Hide all comments" : `View all ${calculateCommentCount(comment.replies)} comments`}
+                    </button>}
+                  <div className='absolute right-10'>
+                    <button onClick={() => toggleDropdowncomment(comment._id)} className="text-gray-500"><FaEllipsisH /></button>
                   </div>
-                  <p>{comment.text}</p>
-                  <div className='flex gap-2'>
-                    <button onClick={() => handleLikeComment(comment._id)} className="flex items-center space-x-1 text-red-500">
-                      <FaHeart />
-                      <span>{comment.likes.length}</span>
-                    </button>
-                    <button onClick={() => handleReply(comment._id, prompt("Enter your reply:"), post._id)} className="flex items-center space-x-1 text-blue-500">
-                   
-                      <span>Reply</span>
-                    </button>
-                  </div>
+                  {isDropdowncommentOpen[comment._id] && (
+                    <div
+                      ref={dropdownRefs}
+                      className="absolute z-10 right-0 mt-4 w-32 bg-white border rounded shadow-lg"
+                    // onClick={(e) => e.stopPropagation()} // Prevent event propagation
+                    >
+                      <button
+                        onClick={() => handlecommentEdit(comment._id)}
+                        disabled={comment.user._id !== userinfo}
+                        className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
+                      >
+                        <FaEdit className="mr-2" /> Edit
+                      </button>
+                      <button
+                        onClick={() => handlecommentDelete(comment._id)}
+                        disabled={comment.user._id !== userinfo}
+                        className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
+                      >
+                        <FaTrash className="mr-2" /> Delete
+                      </button>
+                    </div>
+                  )}
                 </div>
 
+                <p>{comment.text}</p>
+                <div className='flex gap-2'>
+                  <button onClick={() => handleLikeComment(comment._id)} className="flex items-center space-x-1 text-red-500">
+                    <span className='text-xs text-black -mr-0.5'>Like</span>
+                    <span className='text-[12px] text-black'>{comment.likes.length}</span>
+                  </button>
+                  <button onClick={() => handleReply(comment._id, prompt("Enter your reply:"), post._id)} className="flex items-center space-x-1 text-blue-500">
+
+                    <span className='text-xs text-black -mr-0.5'>Reply</span>
+                  </button>
+                  
+                </div>
+                  <div className='w-full absolute z-50 top-0'>
+                    {commenteditVisible[comment._id] && <CommentEdit commenteditid={commenteditid} seteditCommentvisible = {seteditCommentvisible}  />}
+                  </div>
               </div>
-              {childcommentsVisible[comment._id] &&comment.replies.map((reply, replyIndex) => (
-                <>
-                  <div key={replyIndex} className="flex items-center space-x-2 ml-8">
-                    <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
-                    <div className="bg-gray-200 p-2 rounded flex-1">
-                      <div className='flex gap-2 text-xs'> <p className="font-bold">{reply.user.name}</p><span>{format(reply.createdAt)}</span></div>
-                      <p>{reply.text}</p>
-                      <div className='flex gap-2'>
-                        <button onClick={() => handleLikeComment(reply._id)} className="flex items-center space-x-1 text-red-500">
-                          <FaHeart />
-                          <span>{reply.likes.length}</span>
-                        </button>
-                        <button onClick={() => handleReply2Reply(prompt("Enter your reply:"), reply._id, comment._id,reply.user.name)} className="flex items-center space-x-1 text-blue-500">
-                          
-                          <span>Reply</span>
-                        </button>
+
+            </div>
+            {childcommentsVisible[comment._id] && comment.replies.map((reply, replyIndex) => (
+              <>
+                <div key={replyIndex} className="flex items-center space-x-2 ml-8">
+                  <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                  <div className="w-full bg-gray-200 p-2 relative rounded flex-1">
+                    <div
+                      className='flex gap-2 text-xs'>
+                      <p className="font-bold">{reply.user.name}</p>
+                      <span>{format(reply.createdAt)}</span>
+                      <div className='absolute right-10'>
+                        <button onClick={() => toggleDropdowncomment(reply._id)} className="text-gray-500"><FaEllipsisH /></button>
                       </div>
+
+                      {isDropdowncommentOpen[reply._id] && (
+                        <div
+                          ref={dropdownRefs}
+                          className="absolute z-10 right-0 mt-4 w-32 bg-white border rounded shadow-lg"
+                        // onClick={(e) => e.stopPropagation()} // Prevent event propagation
+                        >
+                          <button
+                            onClick={() => handlecommentchildEdit(comment._id, reply._id)}
+                            disabled={reply.user._id !== userinfo}
+                            className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
+                          >
+                            <FaEdit className="mr-2" /> Edit
+                          </button>
+                          <button
+                            onClick={() => handlecommentchilddelte(comment._id,reply._id)}
+                            disabled={reply.user._id !== userinfo}
+                            className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
+                          >
+                            <FaTrash className="mr-2" /> Delete
+                          </button>
+                        </div>
+                      )}
+
+                    </div>
+                    <p>{reply.text}</p>
+                    <div className='w-full flex relative gap-2'>
+                      <button onClick={() => handlecommentreplylike(reply._id, comment._id)} className="flex items-center space-x-1 text-red-500">
+
+                        <span className='text-xs text-black -mr-0.5'>Like</span>
+                        <span className='text-[12px] text-black'>{reply.likes.length}</span>
+
+                      </button>
+                      <button onClick={() => handleReplyfirstchild(prompt("Enter your reply:"), reply._id,comment._id,reply.text,reply.user.name)} className="flex items-center space-x-1 text-blue-500">
+
+                        <span className='text-xs text-black -mr-0.5'>Reply</span>
+                      </button>
+                    </div>
+                    <div className='w-full absolute z-50 top-0'>
+                        {commenteditVisible[reply._id] && <Commentreplyedit commenteditid={commenteditid} commentreplyid={commentreplyid} seteditCommentvisible={seteditCommentvisible} />}
+                    </div>
+                  
+                  </div>
+
+                </div>
+                {reply.replies.map((replies) => (
+                  <div key={replyIndex} className="flex items-center space-x-2 ml-14">
+                    <img src={`http://localhost:4000/uploads/${replies.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                    <div className="bg-gray-200 w-full relative p-2 rounded flex-1">
+                      <div className='flex gap-2 text-xs'>
+                        <p className="font-bold">{replies.user.name}</p>
+                        <span>{format(replies.createdAt)}</span>
+                        <div className='absolute right-10'>
+                          <button onClick={() => toggleDropdowncomment(replies._id)} className="text-gray-500"><FaEllipsisH /></button>
+                        </div>
+
+                        {isDropdowncommentOpen[replies._id] && (
+                          <div
+                            ref={dropdownRefs}
+                            className="absolute z-10 right-0 mt-4 w-32 bg-white border rounded shadow-lg"
+                          // onClick={(e) => e.stopPropagation()} // Prevent event propagation
+                          >
+                            <button
+                              onClick={() => handlecommentreplytoreplyEdit(replies._id)}
+                              disabled={replies.user._id !== userinfo}
+                              className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
+                            >
+                              <FaEdit className="mr-2" /> Edit
+                            </button>
+                            <button
+                              onClick={() => handlecommentreplytoreplyDelete(replies._id)}
+                              disabled={replies.user._id !== userinfo}
+                              className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
+                            >
+                              <FaTrash className="mr-2" /> Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <p className='text-xs'>reply to <span className='text-blue-500 font-semibold'>{replies.replyto}</span></p>
+                      <p className='text-[12px] ml-2'>{replies.replytomsg && replies.replytomsg.length > 15 ? replies.replytomsg.substring(0, 15) + '...' : replies.replytomsg}</p>
+                      <p>{replies.text}</p>
+                      <div className='flex relative gap-2'>
+                        <button onClick={() => handlereply2replylike(replies._id)} className="flex items-center space-x-1 text-red-500">
+                          <span className='text-xs text-black -mr-0.5'>Like</span>
+                          <span className='text-[12px] text-black'>{replies.likes.length}</span>
+                        </button>
+                        <button onClick={() => handleReply2Reply(prompt("Enter your reply:"), reply._id,replies._id,comment._id,replies.text,replies.user.name)} className="flex items-center space-x-1 text-blue-500">
+
+                          <span className='text-xs text-black -mr-0.5'>Reply</span>
+                        </button>
+
+                       
+                      </div>
+                    
+                      <div className='absolute w-full z-50 top-0'>
+                          {commenteditVisible[replies._id] && <CommentreplytoreplyEdit commenteditid={commenteditid} seteditCommentvisible={seteditCommentvisible}  />}
+                        </div>
+                    
                     </div>
 
                   </div>
-                  {reply.replies.map((replies) => (
-                    <div key={replyIndex} className="flex items-center space-x-2 ml-14">
-                      <img src={`http://localhost:4000/uploads/${replies.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
-                      <div className="bg-gray-200 p-2 rounded flex-1">
-                        <div className='flex gap-2 text-xs'> <p className="font-bold">{replies.user.name}</p><span>{format(replies.createdAt)}</span></div>
-                       <p className='text-xs'>reply to <span className='text-blue-500 font-semibold'>{replies.replyto}</span></p>
-                        <p className='text-[12px] ml-2'>{replies.replytomsg && replies.replytomsg.length > 15 ? replies.replytomsg.substring(0, 15) + '...' : replies.replytomsg}</p>
-                        <p>{replies.text}</p>
-                        <div className='flex gap-2'>
-                          <button onClick={() => handleLikeComment(replies._id)} className="flex items-center space-x-1 text-red-500">
-                            <FaHeart />
-                            <span>{replies.likes.length}</span>
-                          </button>
-                          <button onClick={() => handleReply2Reply(prompt("Enter your reply:"), reply._id, comment._id,replies.user.name,replies.text)} className="flex items-center space-x-1 text-blue-500">
-                            
-                            <span>Reply</span>
-                          </button>
-                        </div>
-                      </div>
+                ))}
+              </>
+            ))}
 
-                    </div>
-                  ))}
-                </>
-              ))}
-
-            </div>
+          </div>
         ))}
         <CommentForm postId={post._id} handleComment={handleComment} />
       </div>

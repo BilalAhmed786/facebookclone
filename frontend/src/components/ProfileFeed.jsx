@@ -19,6 +19,8 @@ const ProfileFeed = ({
     postSubmit,
     handleLike,
     handleLikeComment,
+    handlecommentreplylike,
+    handlereply2replylike,
     handleReply,
     handleReply2Reply,
     pagerender,
@@ -28,7 +30,8 @@ const ProfileFeed = ({
     editVisible,
     editId,
     fileInputRef,
-    selectedFiles
+    selectedFiles,
+    profilePic
 }) => {
     const [postdata, setPostdata] = useState([]);
     const [userinfo, setUser] = useState('');
@@ -52,7 +55,7 @@ const ProfileFeed = ({
     postRetrieve();
 
 
-  }, [editVisible, pagerender,postSubmit]);
+  }, [editVisible,profilePic,pagerender,postSubmit]);
 
   // Get current user data
   useEffect(() => {
@@ -68,7 +71,7 @@ const ProfileFeed = ({
     if (userinfo) {
       fetchCurrentUser();
     }
-  }, [userinfo]);
+  }, [userinfo,profilePic]);
 
 
 
@@ -146,19 +149,22 @@ const ProfileFeed = ({
    
         <PostComment
 
-          key={post._id}
-          post={post}
-          userinfo={userinfo}
-          handleEdit={handleEdit}
-          handleDelete={handleDelete}
-          handleLike={handleLike}
-          handleLikeComment={handleLikeComment}
-          handleReply={handleReply}
-          handleReply2Reply={handleReply2Reply}
-          handleComment={handleComment}
-          seteditVisible={seteditVisible}
-          editVisible={editVisible}
-          editId={editId}
+        key={post._id}
+        post={post}
+        userinfo={userinfo}
+        handleEdit={handleEdit}
+        handleDelete={handleDelete}
+        handleLike={handleLike}
+        handleLikeComment={handleLikeComment}
+        handlecommentreplylike={handlecommentreplylike}
+        handlereply2replylike={handlereply2replylike}
+        handleReply={handleReply}
+        handleReply2Reply={handleReply2Reply}
+        handleComment={handleComment}
+        seteditVisible={seteditVisible}
+        editVisible={editVisible}
+        editId={editId}
+
           
           
 />

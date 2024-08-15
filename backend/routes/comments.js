@@ -79,17 +79,18 @@ router.post('/reply/:commentId', async (req, res) => {
     }
 });
 
-//add commentreply to reply
+//reply first child comment 
 
-router.post('/reply2reply', async (req, res) => {
-    
+router.post('/reply2firstchild', async (req, res) => {
+
+  
     try {
         const parentComment = await Comment.findById(req.body.commentid);
 
         if (!parentComment) {
-           
+
             return res.status(404).json({ message: 'Comment not found' });
-        
+
         }
 
         // Find the specific reply within the comment's replies
@@ -99,14 +100,16 @@ router.post('/reply2reply', async (req, res) => {
             return res.status(404).json({ message: 'Reply not found' });
         }
 
-       
-        
+
+
         const newcomment = new Reply({
 
             user: req.user.userId,
-            replyto:req.body.replyto,
-            replytomsg:req.body.replytomsg,
-            text:req.body.text
+            commentid: req.body.commentid,
+            replytoid:req.body.replyid,
+            replyto: req.body.replyto,
+            replytomsg: req.body.replytomsg,
+            text: req.body.text
 
         })
 
@@ -121,12 +124,12 @@ router.post('/reply2reply', async (req, res) => {
 
         }
 
-            reply.replies.push(comment._id.toString())
+        reply.replies.push(comment._id.toString())
 
-            
-            await parentComment.save()
 
-            return res.json('comment saved successfully')
+        await parentComment.save()
+
+        return res.json('comment saved successfully')
 
     } catch (error) {
 
@@ -140,41 +143,96 @@ router.post('/reply2reply', async (req, res) => {
 
 })
 
-// get comment for single user who wants to edit comment
-router.get('/singlecomment/:id', async (req, res) => {
+//reply to after first child comment
+router.post('/replytoreply', async (req, res) => {
 
-    const singlecomment = await Comment.findById(req.params.id)
+  
+    try {
+        const parentComment = await Comment.findById(req.body.commentid);
 
-    if (singlecomment.user.toString() === req.body.userId) {
+        if (!parentComment) {
+
+            return res.status(404).json({ message: 'Comment not found' });
+
+        }
+
+        // Find the specific reply within the comment's replies
+        const reply = parentComment.replies.find(reply => reply._id.equals(req.body.replyid));
+
+        if (!reply) {
+            return res.status(404).json({ message: 'Reply not found' });
+        }
 
 
-        return res.json(singlecomment.text)
+
+        const newcomment = new Reply({
+
+            user: req.user.userId,
+            commentid: req.body.commentid,
+            replytoid:req.body.repliesid,
+            replyto: req.body.replyto,
+            replytomsg: req.body.replytomsg,
+            text: req.body.text
+
+        })
+
+        const comment = await newcomment.save()
 
 
-    } else {
+        if (!comment) {
 
-        return res.status(401).json('u cant edit this message')
+
+            return res.status(500).json('server error')
+
+
+        }
+
+        reply.replies.push(comment._id.toString())
+
+
+        await parentComment.save()
+
+        return res.json('comment saved successfully')
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({ message: error.message });
+
     }
+
+
 
 })
 
 
 
-//delete comment
+// parent comment edit and delete
+router.get('/singlecomment/:id', async (req, res) => {
+
+    const singlecomment = await Comment.findById(req.params.id)
+
+    return res.json(singlecomment.text)
+
+
+})
+
+
 router.delete('/removecomment/:id', async (req, res) => {
 
-    const usercomment = await Comment.findById(req.params.id)
+    const usercomment = await Comment.findByIdAndDelete(req.params.id)
 
-    if (usercomment.user.toString() === req.body.userId) {
+    const replycomments = await Reply.deleteMany({ commentid: req.params.id })
 
-        await usercomment.deleteOne()
+    if (usercomment && replycomments) {
 
-        return res.json("comment deleted")
+        return res.json('remove comment')
 
     } else {
 
 
-        return res.status(401).json('u cant remove this comment')
+        return res.status(500).json('server error')
 
     }
 
@@ -182,21 +240,308 @@ router.delete('/removecomment/:id', async (req, res) => {
 
 router.put('/updatecomment/:id', async (req, res) => {
 
-    const comment = await Comment.findById(req.params.id)
 
+    const comment = await Comment.findOneAndUpdate({ _id: req.params.id }, { $set: { text: req.body.comment } })
 
-    if (comment.user.toString() === req.body.userId) {
-
-        await Comment.updateOne({ $set: { text: req.body.text } })
+    if (comment) {
 
         return res.json('update success')
 
     } else {
 
-        return res.status(401).json('u cantupdate this comment')
+        return res.status(500).json('server error')
+    }
+
+})
+
+
+//first child comment edit delete update
+
+router.post('/childcommentedit/:id', async (req, res) => {
+
+    const comment = await Comment.findById(req.params.id)
+
+    const findcomment = comment.replies.find(reply => reply._id.toString() === req.body.commentreplyid)
+
+    if (!findcomment) {
+
+        return res.status(500).json('server error')
+    }
+
+    return res.json(findcomment.text)
+
+})
+
+router.put('/updatechildcomment/:id', async (req, res) => {
+    try {
+        // Find the comment by ID
+        const findcomment = await Comment.findById(req.params.id);
+
+        // Find the specific reply within the replies array
+        const comment = findcomment.replies.find(reply => reply._id.toString() === req.body.commentreplyid);
+
+        // If the reply is not found, return a 404 error
+        if (!comment) {
+            return res.status(404).json('Comment not found');
+        }
+
+        // Update the text of the found reply
+        comment.text = req.body.comment;
+
+        // Save the updated comment document
+        await findcomment.save();
+
+        // Update any reply in the Reply collection where replytoid matches commentreplyid
+        const replyUpdateResult = await Reply.updateMany(
+            { replytoid: req.body.commentreplyid },
+            { replytomsg: req.body.comment }
+        );
+
+        // Check if the reply update was successful (optional)
+        if (replyUpdateResult.nModified === 0) {
+            console.log('No replies were updated');
+        }
+
+        return res.json('Comment updated successfully');
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json('Server error');
+    }
+})
+
+
+
+
+router.delete('/deletechildcomment/:id/:replyid', async (req, res) => {
+
+    try {
+
+        const findcomment = await Comment.findById(req.params.id)
+
+        if (!findcomment) {
+
+            return res.status(404).json('reply not found')
+        }
+        // Remove the reply from the replies array
+        findcomment.replies.pull({ _id: req.params.replyid });
+
+        // Save the updated comment document
+        await findcomment.save();
+
+        await Reply.deleteMany({ commentid: req.params.id })
+
+        return res.json('deleted successfully')
+
+    } catch (error) {
+
+        console.log(error)
     }
 
 
 })
+
+//for last child edit update delete
+
+router.get('/replytoreplyedit/:id',async(req,res)=>{
+
+try{
+
+    const reply = await Reply.findById(req.params.id)
+
+            if(!reply){
+
+                return res.status(404).json('reply not found')
+            }
+
+                return res.json(reply.text)
+
+
+}catch(error){
+
+    console.log(error)
+}
+    
+
+
+})
+
+
+router.put('/replytoreplyupdate/:id', async (req, res) => {
+    try {
+        // Update the reply by ID
+        const reply = await Reply.findByIdAndUpdate(req.params.id, { text: req.body.comment }, { new: true });
+
+        // Check if the reply was found and updated
+        if (!reply) {
+            return res.status(404).json('Reply not found');
+        }
+
+        // Update replies that reference this reply (where replytoid matches)
+        const replyto = await Reply.updateMany({ replytoid: req.params.id }, { replytomsg: req.body.comment });
+
+        // Check if the replyto update was successful (optional based on your needs)
+        if (replyto.nModified === 0) {
+           
+            return res.status(404).json('No replies referencing this reply were found to update');
+        
+        }
+
+            return res.json('Update successful');
+    
+        } catch (error) {
+        
+        console.log(error);
+        
+        return res.status(500).json('Server error');
+    }
+});
+
+
+router.delete('/replytoreplydelete/:id',async(req,res)=>{
+
+    try{
+
+            const comment = await Reply.findByIdAndDelete({_id:req.params.id})
+
+             if(!comment){
+
+                return res.status(404).json('comment not found')
+            
+            }
+
+
+            
+            return res.json('deleted successfully')
+       
+
+
+    }catch(error){
+
+        console.log(error)
+    }
+
+
+})
+
+
+router.put('/like/:id', async (req, res) => {
+
+    console.log(req.user.userId)
+    try {
+
+        const comment = await Comment.findById(req.params.id)
+
+
+
+
+        if (!comment.likes.includes(req.user.userId)) {
+
+
+            comment.likes.push(req.user.userId)
+
+            await comment.save()
+
+            res.json('like comment')
+
+        } else {
+
+
+            comment.likes.pull(req.user.userId)
+
+            await comment.save()
+
+            res.json('unlike comment')
+
+        }
+
+
+
+    } catch (error) {
+
+        console.log(error)
+    }
+
+
+})
+
+
+router.put('/replylike/:id', async (req, res) => {
+    const { id } = req.params;  // Comment ID
+    const { replyid } = req.body;  // Reply ID
+    const userId = req.user.userId;  // Assuming req.user contains the user info
+
+    try {
+        // Check if the user has already liked the reply
+        const comment = await Comment.findOne({ _id: id })
+
+        const commentfind = comment.replies.find(reply => reply._id.toString() === replyid)
+
+
+        if (!commentfind.likes.includes(userId)) {
+
+
+            commentfind.likes.push(userId)
+
+            await comment.save()
+
+            res.json('comment likes')
+
+
+        } else {
+
+            commentfind.likes.pull(userId)
+
+            await comment.save()
+
+            res.json('comment unlike')
+
+        }
+
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+
+
+router.put('/replytoreplylike/:id', async (req, res) => {
+
+    try {
+
+        const comment = await Reply.findById(req.params.id)
+
+
+        if (!comment.likes.includes(req.user.userId)) {
+
+            comment.likes.push(req.user.userId)
+
+            await comment.save()
+
+            res.json('like comment')
+
+        } else {
+
+            comment.likes.pull(req.user.userId)
+
+            await comment.save()
+
+            res.json('unlike comment')
+
+        }
+
+
+    } catch (error) {
+
+        console.log(error)
+
+
+    }
+
+
+})
+
+
 
 module.exports = router;

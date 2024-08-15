@@ -1,11 +1,11 @@
 // Topbar.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FaUser, FaComment, FaBell } from 'react-icons/fa';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link,useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Topbar = () => {
-
+  const toggleoutside = useRef()
   const [togglemenu, stateTogglemenu] = useState(false)
   const[userinfo,stateUserinfo] =useState({})
   const navigate = useNavigate()
@@ -32,11 +32,32 @@ const Topbar = () => {
 
     userinfo()
 
+
+
   },[userinfo])
+
+
+  useEffect(() => {
+
+    const handleClickOutside =(e)=>{
+
+      if( toggleoutside.current && !toggleoutside.current.contains(e.target)){
+   
+           stateTogglemenu(false)
+   
+       }
+   }
+
+      document.addEventListener('mousedown', handleClickOutside);
+    
+        return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   const toggleMenu = () => {
 
-    stateTogglemenu((togglemenu => !togglemenu))
+    stateTogglemenu(!togglemenu)
   }
 
   const Logout = async () => {
@@ -104,6 +125,8 @@ const Topbar = () => {
           {/* Profile Picture */}
           <div onClick={toggleMenu}>
             <div style={{ display: togglemenu ? 'block' : 'none', zIndex:'9999' }}
+              ref={toggleoutside}
+              onClick={(e) => e.stopPropagation()}
               className='absolute bg-blue-600 mt-12 ml-2 p-5'>
               <ul className='w-full -mt-3'>
                 <li

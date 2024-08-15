@@ -16,12 +16,25 @@ const Feed = ({
   postSubmit,
   handleLike,
   handleLikeComment,
+  handlecommentreplylike,
+  handlereply2replylike,
+  handlecommentEdit,
+  handlecommentDelete,
+  handlecommentchildEdit,
+  handlecommentchilddelte,
+  handlecommentreplytoreplyEdit,
+  handlecommentreplytoreplyDelete,
+  commenteditVisible,
+  commenteditid,
+  commentreplyid,
   handleReply,
   handleReply2Reply,
+  handleReplyfirstchild,
   pagerender,
   setIsVisible,
   isVisible,
   seteditVisible,
+  seteditCommentvisible,
   editVisible,
   editId,
   fileInputRef,
@@ -153,10 +166,23 @@ const Feed = ({
           handleDelete={handleDelete}
           handleLike={handleLike}
           handleLikeComment={handleLikeComment}
+          handlecommentreplylike={handlecommentreplylike}
+          handlereply2replylike={handlereply2replylike}
           handleReply={handleReply}
           handleReply2Reply={handleReply2Reply}
+          handleReplyfirstchild={handleReplyfirstchild}
           handleComment={handleComment}
+          handlecommentDelete={handlecommentDelete}
+          handlecommentEdit={handlecommentEdit}
+          handlecommentchildEdit={handlecommentchildEdit}
+          handlecommentchilddelte={handlecommentchilddelte}
+          handlecommentreplytoreplyEdit={handlecommentreplytoreplyEdit}
+          handlecommentreplytoreplyDelete={handlecommentreplytoreplyDelete}
+          commenteditVisible={commenteditVisible}
+          commenteditid={commenteditid}
+          commentreplyid={commentreplyid}
           seteditVisible={seteditVisible}
+          seteditCommentvisible={seteditCommentvisible}
           editVisible={editVisible}
           editId={editId}
 
