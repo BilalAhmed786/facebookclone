@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import Rightsidebar from '../components/Rightsidebar';
-import Leftsidebar from '../components/Leftsidebar';
-import Topbar from '../components/Topbar';
-import Feed from '../components/Feed';
+import Rightsidebar from '../components/Sidebars/Rightsidebar';
+import Leftsidebar from '../components/Sidebars/Leftsidebar';
+import Topbar from '../components/Topbar/Topbar';
+import Feed from '../components/Feed/Feed';
 
 const Home = () => {
 

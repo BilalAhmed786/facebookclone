@@ -5,6 +5,7 @@ const fs = require('fs');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const upload = require('../multer/multer');
+const { populate } = require('../models/Comment');
 const router = express.Router();
 
 //during edit files upload
@@ -236,32 +237,35 @@ router.get('/allposts', async (req, res) => {
         followingUsers.push(user._id.toString());
 
         // Find all posts from the current user and the users they are following
-        const allPosts = await Post.find({ user: { $in: followingUsers } }).sort({ createdAt: -1 }).populate('user')
-            .populate({
-                path: 'comments',
-                options: { sort: { createdAt: -1 } },
-                populate: [
-                    {
+        const allPosts = await Post.find({ user: { $in: followingUsers },isShared:false }).sort({ createdAt: -1 }).populate('user').populate({
+        path:'likes',
+        select:"name"
+        })
+        .populate({
+            path: 'comments',
+            options: { sort: { createdAt: -1 } },
+            populate: [
+                {
+                    path: 'user',
+                    select: 'name profilepicture'
+                },
+                {
+                    path: 'replies.user',
+                    select: 'name profilepicture'
+                },
+
+                {
+                    path: 'replies.replies',
+                    populate: {
                         path: 'user',
-                        select: 'name profilepicture'
-                    },
-                    {
-                        path: 'replies.user',
-                        select: 'name profilepicture'
-                    },
-
-                    {
-                        path: 'replies.replies',
-                        populate: {
-                            path: 'user',
-                            select: 'name profilepicture'
-                        }
+                        select: 'name profilepicture',
                     }
+                   
+                }
+            ]
 
+        });
 
-                ]
-
-            });
 
         // Send the posts as a JSON response
         return res.status(200).json({ allPosts: allPosts, Userid: user._id });
@@ -286,7 +290,18 @@ router.get('/timeline/:id', async (req, res) => {
 
 
 
-        const allPosts = await Post.find({ user: req.params.id }).sort({ createdAt: -1 }).populate('user')
+        const allPosts = await Post.find({
+
+            $or: [
+                { user: req.params.id },      
+                { user: req.params.id,isShared: true }  
+            ]
+
+    }).sort({ createdAt: -1 }).populate('user')
+            .populate({
+                path:'likes',
+                select:'name'
+            })
             .populate({
                 path: 'comments',
                 options: { sort: { createdAt: -1 } },
@@ -304,7 +319,7 @@ router.get('/timeline/:id', async (req, res) => {
                         path: 'replies.replies',
                         populate: {
                             path: 'user',
-                            select: 'name profilepicture'
+                            select: 'name profilepicture',
                         }
                     }
 
@@ -321,6 +336,39 @@ router.get('/timeline/:id', async (req, res) => {
     }
 
 })
+
+//shared post 
+
+
+router.post('/sharedpost/:id',async(req,res)=>{
+
+    try {
+        const originalPost = await Post.findById(req.params.id);
+        if (!originalPost) {
+            return res.status(404).json('Original post not found');
+        }
+
+        // Create a new post document for the shared post
+        const sharedPost = new Post({
+            user: req.user.userId,  // Assuming you have a way to get the logged-in user's ID
+            text: originalPost.text,  // Allowing the user to add additional text
+            bgcolor:originalPost.bgcolor,
+            isShared: true,
+            originalPost: originalPost._id,
+              
+        });
+
+        await sharedPost.save();
+
+        return res.status(201).json('Post shared successfully');
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json('Server error');
+    }
+
+
+})
+
 
 
 

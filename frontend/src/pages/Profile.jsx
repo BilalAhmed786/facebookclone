@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import ProfileRightsidebar from '../components/ProfileRightsidebar';
-import Leftsidebar from '../components/Leftsidebar';
-import ProfileFeed from '../components/ProfileFeed';
+import ProfileRightsidebar from '../components/Sidebars/ProfileRightsidebar';
+import Leftsidebar from '../components/Sidebars/Leftsidebar';
+import ProfileFeed from '../components/Feed/ProfileFeed';
 import cover from '../images/profilepic.webp';
 import profilepic from '../images/cover.jpg';
-import Topbar from '../components/Topbar';
+import Topbar from '../components/Topbar/Topbar';
 import { FaCamera } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
