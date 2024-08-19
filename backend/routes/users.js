@@ -9,54 +9,54 @@ const upload = require('../multer/multer')
 const router = express.Router();
 
 //user update
-router.put('/:id', async (req, res) => {
+// router.put('/:id', async (req, res) => {
 
-    try {
-        if (req.params.id === req.body.userId || req.user.isAdmin) {
+//     try {
+//         if (req.params.id === req.body.userId || req.user.isAdmin) {
 
-            if (req.body.password) {
+//             if (req.body.password) {
 
-                if (req.body.password !== req.body.retypepassword) {
-
-
-                    return res.status(400).json('passwords are not matched')
-                }
-
-                const user = await User.findOne({ _id: req.params.id })
-
-                const comparepass = await bcrypt.compare(req.body.oldpassword, user.password)
+//                 if (req.body.password !== req.body.retypepassword) {
 
 
-                if (!comparepass) {
+//                     return res.status(400).json('passwords are not matched')
+//                 }
+
+//                 const user = await User.findOne({ _id: req.params.id })
+
+//                 const comparepass = await bcrypt.compare(req.body.oldpassword, user.password)
 
 
-                    return res.status(400).json('Invalid old password')
-
-                }
-
-                const salt = await bcrypt.genSalt(10)
-
-                req.body.password = await bcrypt.hash(req.body.password, salt)
-                req.body.retypepassword = await bcrypt.hash(req.body.retypepassword, salt)
-
-            }
-
-            const userupdate = await User.findByIdAndUpdate(req.params.id, { $set: req.body })
+//                 if (!comparepass) {
 
 
-            return res.json('Account info update successfully')
-        } else {
+//                     return res.status(400).json('Invalid old password')
 
-            console.log('u can update yourselt only')
-        }
+//                 }
 
-    } catch (error) {
+//                 const salt = await bcrypt.genSalt(10)
 
-        console.log(error)
-    }
+//                 req.body.password = await bcrypt.hash(req.body.password, salt)
+//                 req.body.retypepassword = await bcrypt.hash(req.body.retypepassword, salt)
+
+//             }
+
+//             const userupdate = await User.findByIdAndUpdate(req.params.id, { $set: req.body })
 
 
-})
+//             return res.json('Account info update successfully')
+//         } else {
+
+//             console.log('u can update yourselt only')
+//         }
+
+//     } catch (error) {
+
+//         console.log(error)
+//     }
+
+
+// })
 
 router.delete('/:id', async (req, res) => {
 
@@ -148,42 +148,42 @@ router.put('/follow/:id', async (req, res) => {
 })
 
 
-router.put('/unfollow/:id', async (req, res) => {
+// router.put('/unfollow/:id', async (req, res) => {
 
-    if (req.params.id !== req.body.userId) {
+//     if (req.params.id !== req.body.userId) {
 
-        try {
+//         try {
 
-            const user = await User.findOne({ _id: req.params.id })
-            const currentuser = await User.findOne({ _id: req.body.userId })
-
-
-            if (user.followers.includes(req.body.userId)) {
-
-                await user.updateOne({ $pull: { followers: req.body.userId } })
-                await currentuser.updateOne({ $pull: { following: req.params.id } })
-
-                return res.json('unfollow successfully')
-            } else {
-
-                return res.json('u didnot follow this user')
-            }
+//             const user = await User.findOne({ _id: req.params.id })
+//             const currentuser = await User.findOne({ _id: req.body.userId })
 
 
-        } catch (error) {
+//             if (user.followers.includes(req.body.userId)) {
 
-            console.log(error)
-        }
+//                 await user.updateOne({ $pull: { followers: req.body.userId } })
+//                 await currentuser.updateOne({ $pull: { following: req.params.id } })
 
-    } else {
+//                 return res.json('unfollow successfully')
+//             } else {
 
-        return res.json('u cant unfollow yourself')
-    }
+//                 return res.json('u didnot follow this user')
+//             }
+
+
+//         } catch (error) {
+
+//             console.log(error)
+//         }
+
+//     } else {
+
+//         return res.json('u cant unfollow yourself')
+//     }
 
 
 
 
-})
+// })
 
 // api for profile cover photo
 
@@ -204,7 +204,7 @@ router.post('/uploadcover',upload.single('file'),async(req,res)=>{
 
             if(err){
                
-                throw err
+                console.log('file not found')
             }else{
 
                 console.log('previous cover remove')
@@ -243,7 +243,10 @@ router.post('/uploadprofile',upload.single('file'),async(req,res)=>{
 
             if(err){
                
-                throw err
+
+                console.log('file not found')
+
+
             }else{
 
                 console.log('previous profile pic remove')
@@ -264,6 +267,95 @@ router.post('/uploadprofile',upload.single('file'),async(req,res)=>{
 
 })
 
+router.put('/usernameedit',async(req,res)=>{
 
+
+                    if(!req.body.username){
+
+
+                        return res.status(400).json('field is required')
+                    }
+
+        try{
+
+               const user = await User.findByIdAndUpdate({_id:req.user.userId},{name:req.body.username})
+
+                    if(!user){
+
+                        return res.status(404).json('something wrong happend')
+                    }
+
+                   return res.json('update user name succesfully') 
+
+
+        }catch(error){
+
+            console.log(error)
+        }
+
+})
+
+router.put('/userinfoedit',async(req,res)=>{
+
+const {city,from,relationship} = req.body
+
+            if(!city || !from || !relationship){
+
+            return res.status(400).json('All fields required')
+     
+        }
+
+        
+    try{
+
+
+        const userinfo  = await User.findByIdAndUpdate({_id:req.user.userId},{city,from,relationship})
+
+            if(!userinfo){
+
+                return res.status(404).json('user is not found')
+            }
+
+                
+                return res.json('userinfo updated')
+
+    }catch(error){
+
+
+
+
+        console.log(error)
+    }
+
+
+
+})
+
+
+router.get('/followers',async(req,res)=>{
+
+        try{
+
+
+        const followers = await User.find({_id:{$in:req.query.follow}},{name:1,profilepicture:1})
+
+
+        if(!followers){
+
+            return res.status(404).json('followers not found')
+        }
+
+           return res.json(followers)
+      
+
+
+    }catch(error){
+
+      
+        console.log(error)
+    
+    }
+
+})
 
 module.exports = router

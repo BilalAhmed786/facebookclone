@@ -1,15 +1,32 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
-const ProfileEdit = ({ onClose }) => {
-  const [city, setCity] = useState('New York');
-  const [from, setFrom] = useState('Madrid');
-  const [relationship, setRelationship] = useState('Single');
+const ProfileEdit = ({ onClose,userinfo,setpagerender}) => {
+  
+  const [city, setCity] = useState(userinfo.city || "Islamabad" );
+  const [from, setFrom] = useState(userinfo.from || "Pakistan" );
+  const [relationship, setRelationship] = useState(userinfo.relationship || "Single");
+  
+  const handleSubmit = async(e) => {
+   
+         e.preventDefault();
+    try{
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Handle form submission logic here
-    onClose(); // Close the form after submission
+      const result = await axios.put('/api/users/userinfoedit',{city,from,relationship})
+
+      toast.success(result.data)
+      
+      setpagerender(Date.now())
+      
+
+
+    }catch(error){
+
+      toast.error(error.response.data)
+    }
+ 
   };
 
   return (

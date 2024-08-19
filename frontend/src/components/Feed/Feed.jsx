@@ -47,7 +47,7 @@ const Feed = ({
   const [currentuser, setCurrentuser] = useState({});
 
 
-console.log(postdata)
+
 
   // Retrieve data for user posts
   useEffect(() => {
@@ -85,15 +85,10 @@ console.log(postdata)
   }, [userinfo]);
 
 
-  if (postdata.length === 0) {
+  
 
-
-    return <FullScreenLoader />
-
-
-  }
-
-  return (
+ 
+ return (
     <div className="w-full flex-[2] bg-white p-4 h-screen">
       {/* Share Post Box */}
       <div className="relative">

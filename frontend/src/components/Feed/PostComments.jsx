@@ -7,6 +7,7 @@ import Commentreplyedit from '../Comments/Commentreplyedit';
 import CommentreplytoreplyEdit from '../Comments/CommentreplytoreplyEdit';
 import Postedit from './Postedit';
 import ReplyForm from '../Comments/ReplyForm';
+import Preloader from '../Preloader/Preloader';
 import { useParams } from 'react-router-dom';
 import Lastchildreplyform from '../Comments/Lastchildreplyform';
 import Childreplyform from '../Comments/Childreplyform';
@@ -43,6 +44,7 @@ const PostComment = ({
 
   const dropdownRefs = useRef({});
   const { id } = useParams();
+  const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDropdowncommentOpen, setIsDropdowncommentOpen] = useState({});
   const [commentsVisible, setCommentsVisible] = useState({});
@@ -92,11 +94,30 @@ const PostComment = ({
       setReplyformvisible(false);
     }
   };
-  useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+
+
+ useEffect(() => {
+  
+
+// for preloader
+
+// Simulate loading delay (e.g., fetching data)
+const loadData = async () => {
+ 
+  await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulated delay
+ 
+  setLoading(false);
+};
+
+loadData();
+
+
+document.addEventListener('mousedown', handleClickOutside);
+return () => {
+  document.removeEventListener('mousedown', handleClickOutside);
+};
+
+
   }, []);
 
 
@@ -139,9 +160,18 @@ const PostComment = ({
     return count;
   };
 
+  if (loading) {
+    return (
+      <div className="w-full flex-[2] bg-white p-4 h-screen flex items-center justify-center">
+        <Preloader />
+      </div>
+    );
+  }
+
+
 
   return (
-
+    
     <div className="relative mb-4 p-4 border rounded shadow-sm">
       <div className="flex items-center space-x-2 mb-4">
         <img src={`http://localhost:4000/uploads/${post.user.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />

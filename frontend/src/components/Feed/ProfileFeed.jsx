@@ -2,9 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Textbox from './Textbox';
 import PostComment from './PostComments';
-import FullScreenLoader from '../Preloader/Preloader';
 import Hoc from '../Hoc/Hoc';
-import { toast } from 'react-toastify';
 import { FaCamera } from 'react-icons/fa';
 import {useParams} from 'react-router-dom';
 
@@ -86,14 +84,6 @@ console.log(postdata)
   }, [userinfo,profilePic]);
 
 
-
-  if (postdata.length === 0) {
-
-
-    return <FullScreenLoader />
-
-
-  }
 
   return (
     <div className="w-full flex-[2] bg-white p-4 h-screen">

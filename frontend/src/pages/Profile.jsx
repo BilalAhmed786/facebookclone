@@ -2,34 +2,59 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import ProfileRightsidebar from '../components/Sidebars/ProfileRightsidebar';
 import Leftsidebar from '../components/Sidebars/Leftsidebar';
+import Coverphoto from '../images/cover.jpg'
+import Profilehoto from '../images/profilepic.webp'
 import ProfileFeed from '../components/Feed/ProfileFeed';
-import cover from '../images/profilepic.webp';
-import profilepic from '../images/cover.jpg';
 import Topbar from '../components/Topbar/Topbar';
-import { FaCamera } from 'react-icons/fa';
+import { FaCamera, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
 
 const Profile = () => {
-    const [coverPic, setCoverPic] = useState(cover);
-    const [profilePic, setProfilePic] = useState(profilepic);
+    const [coverPic, setCoverPic] = useState('');
+    const[pagerender,setpagerender] =useState('');
+    const [profilePic, setProfilePic] = useState('');
+    const [userformtoggle, toggleUsername] = useState(false)
+    const [userinfo, setUserinfo] = useState('')
+    const [username, setUserName] = useState('')
     const profileCoverInputRef = useRef();
     const profilepicInputRef = useRef();
     const { id } = useParams();
+
+    //username change handler
+
+
+    const handleUserName = async (e) => {
+        e.preventDefault()
+        try {
+
+            const result = await axios.put('/api/users/usernameedit', { username })
+
+            toast.success(result.data)
+            setpagerender(Date.now())
+
+        } catch (error) {
+
+            
+            toast.error(error.response.data)
+        }
+    }
 
     useEffect(() => {
         const userinfo = async () => {
             try {
                 const user = await axios.get(`/api/users/singleuser/${id}`);
-                setProfilePic(user.data.profilepicture || profilepic);
-                setCoverPic(user.data.coverpicture || cover);
+                setUserinfo(user.data)
+                setUserName(user.data.name)
+                setProfilePic(user.data.profilepicture);
+                setCoverPic(user.data.coverpicture);
             } catch (error) {
                 console.log(error);
             }
         };
 
         userinfo();
-    }, [id,coverPic,profilePic]);
+    }, [pagerender,id]);
 
     const handleProfileCoverChange = async (event) => {
         const file = event.target.files[0];
@@ -79,6 +104,7 @@ const Profile = () => {
         profilepicInputRef.current.click();
     };
 
+
     return (
         <>
             <Topbar />
@@ -86,27 +112,52 @@ const Profile = () => {
                 <Leftsidebar />
                 <div className="left-sidebar w-full overflow-auto">
                     <div className='relative'>
-                        <img className="w-full h-96 object-cover" src={`http://localhost:4000/uploads/${coverPic}`} alt="Cover" />
+                      {coverPic ?  
+                        <img
+                            className="w-full h-96 object-cover"
+                            src={`http://localhost:4000/uploads/${coverPic}`}
+                           
+                        />
+                      :  
+                      <img
+                      className="w-full h-96 object-cover"
+                      src={Coverphoto}
+                     
+                        />
+                      }
                         <input
                             style={{ display: 'none' }}
                             ref={profileCoverInputRef}
                             onChange={handleProfileCoverChange}
                             type="file"
                         />
-                        <button
-                            className='absolute bg-slate-300 flex bottom-10 right-12 rounded px-5 py-3'
-                            onClick={triggerProfileCoverInput}
-                        >
-                            <FaCamera className='mt-1 mr-2' />Edit Cover
-                        </button>
+                        
+                            <button
+                                className='absolute bg-slate-300 flex bottom-10 right-12 rounded px-5 py-3'
+                                onClick={triggerProfileCoverInput}
+                            >
+                                <FaCamera className='mt-1 mr-2' />Edit Cover
+                            </button>
+                        
                     </div>
-                    <div className='relative'>
-                        <div className='absolute left-10 -top-40'>
+
+                    <div className='relative mb-28'>
+                        <div className='absolute left-10 -top-28'>
+                            {profilePic?
                             <img
                                 className='w-40 h-40 object-cover rounded-full'
                                 src={`http://localhost:4000/uploads/${profilePic}`}
-                                alt="Profile"
+                                
+                            />:
+                            <img
+                            className='w-40 h-40 object-cover rounded-full'
+                            src={Profilehoto}
+                            
                             />
+                            
+                            }
+
+
                             <input
                                 style={{ display: 'none' }}
                                 ref={profilepicInputRef}
@@ -119,14 +170,50 @@ const Profile = () => {
                             >
                                 <FaCamera className='text-white' />
                             </button>
+
+
+                            <div className='absolute flex w-full gap-5 left-[24%] mt-3'>
+
+                                <h2 className='font-semibold'>{userinfo.name}</h2>
+                                <button
+                                    className='text-blue-500'
+                                    onClick={() => (toggleUsername(!userformtoggle))}
+                                ><FaEdit />
+                                </button>
+                                {userformtoggle && (
+                                    <div className='absolute'>
+                                        <form
+                                            className='flex gap-3 -ml-7'
+                                            onSubmit={handleUserName}>
+                                            <button onClick={() => (toggleUsername(false))}>X</button>
+                                            <input
+                                                className='text-center'
+                                                onChange={(e) => (setUserName(e.target.value))}
+                                                value={username}
+                                                type="text" />
+                                            <input
+                                                className='bg-blue-500 text-white py-1 px-4 cursor-pointer'
+                                                type="submit" value="Save" />
+                                        </form>
+                                    </div>
+                                )}
+                            </div>
+
                         </div>
-                        <div>
-                            <h2 className='m-20 mt-24 font-semibold'>Bilal Ahmed</h2>
-                        </div>
+
+
+                        {userinfo._id !== id && (
+
+                            <div className='absolute bg-blue-500 text-white px-6 py-1 -top-10 right-24'>
+
+                                <button>+ Follow</button>
+                            </div>
+
+                        )}
                     </div>
                     <div className="flex m-14">
                         <ProfileFeed profilePic={profilePic} />
-                        <ProfileRightsidebar />
+                        <ProfileRightsidebar userinfo={userinfo} setpagerender={setpagerender} />
                     </div>
                 </div>
             </div>
