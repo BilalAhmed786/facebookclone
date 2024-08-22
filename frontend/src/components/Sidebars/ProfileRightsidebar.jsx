@@ -1,20 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { FaEdit, FaTimes } from 'react-icons/fa';
+import { FaEdit } from 'react-icons/fa';
 import ProfileEdit from './ProfileEdit';
 import axios from 'axios';
+import { useParams,Link } from 'react-router-dom';
 
-const ProfileRightSidebar = ({ userinfo, setpagerender }) => {
+const ProfileRightSidebar = ({ userinfo, setpagerender,loginUser }) => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [followers, setFollowers] = useState([]);
+  const {id} =useParams();
   
   
 
   const handleEditClick = () => {
+  
+   
     setIsEditing(true);
+  
   };
 
-  const handleCloseClick = () => {
+  const handleCloseClick = (e) => {
+    
+    e.preventDefault()
+    
     setIsEditing(false);
   };
 
@@ -28,7 +36,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender }) => {
         });
 
         setFollowers(response.data);
-        console.log('followers:',response.data);
+      
       } catch (error) {
         console.error('Error fetching followers:', error);
       }
@@ -49,12 +57,14 @@ const ProfileRightSidebar = ({ userinfo, setpagerender }) => {
         <>
           <div className='flex gap-4'>
             <h2 className="text-lg font-bold text-gray-900 mb-4">User Information</h2>
+          { loginUser === id &&
             <button
               onClick={handleEditClick}
               className="-mt-3 text-blue-500 hover:text-blue-700"
             >
               <FaEdit className="mr-2" />
             </button>
+          }
           </div>
           <div className="mb-4">
             <p><span className="font-semibold">City:</span> {userinfo.city ? userinfo.city : "Islamabad"}</p>
@@ -64,6 +74,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender }) => {
           <h3 className="text-md font-semibold text-gray-800 mb-2">User Friends</h3>
           <div className="flex space-x-4">
             {followers.map((follower, index) => (
+              <Link to={`http://localhost:5173/profile/${follower._id}`}>
               <div key={index} className="text-center">
                 <img
                   src={`http://localhost:4000/uploads/${follower.profilepicture}`}
@@ -72,6 +83,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender }) => {
                 />
                 <p className="text-sm mt-2">{follower.name}</p>
               </div>
+              </Link>
             ))}
           </div>
         </>

@@ -5,7 +5,6 @@ const fs = require('fs');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const upload = require('../multer/multer');
-const { populate } = require('../models/Comment');
 const router = express.Router();
 
 //during edit files upload

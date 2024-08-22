@@ -12,18 +12,69 @@ import { useParams } from 'react-router-dom';
 
 const Profile = () => {
     const [coverPic, setCoverPic] = useState('');
-    const[pagerender,setpagerender] =useState('');
+    const [pagerender, setpagerender] = useState('');
+    const [followings,setFollowings]=useState('');
     const [profilePic, setProfilePic] = useState('');
     const [userformtoggle, toggleUsername] = useState(false)
     const [userinfo, setUserinfo] = useState('')
+    const [loginUser, setLoginUser] = useState('')
     const [username, setUserName] = useState('')
     const profileCoverInputRef = useRef();
     const profilepicInputRef = useRef();
     const { id } = useParams();
 
+
+    useEffect(() => {
+        const userinfo = async () => {
+            try {
+                const user = await axios.get(`/api/users/singleuser/${id}`);
+                
+                setUserinfo(user.data.finduser)
+                setLoginUser(user.data.loginuser)
+                setUserName(user.data.finduser.name)
+                setProfilePic(user.data.finduser.profilepicture);
+                setCoverPic(user.data.finduser.coverpicture);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        userinfo();
+    }, [pagerender, id]);
+
+    //hand follow users
+
+
+    const handleFollowuser = async () => {
+
+        try {
+
+           const result =  await axios.put(`/api/users/follow/${id}`)
+
+                
+                toast.success(result.data.msg)
+
+                setFollowings(result.data.following)
+
+                setpagerender(Date.now())
+
+
+        } catch(error) {
+
+
+                console.log(error)
+
+        }
+
+
+    }
+
+
+
+
+
+
     //username change handler
-
-
     const handleUserName = async (e) => {
         e.preventDefault()
         try {
@@ -35,26 +86,10 @@ const Profile = () => {
 
         } catch (error) {
 
-            
+
             toast.error(error.response.data)
         }
     }
-
-    useEffect(() => {
-        const userinfo = async () => {
-            try {
-                const user = await axios.get(`/api/users/singleuser/${id}`);
-                setUserinfo(user.data)
-                setUserName(user.data.name)
-                setProfilePic(user.data.profilepicture);
-                setCoverPic(user.data.coverpicture);
-            } catch (error) {
-                console.log(error);
-            }
-        };
-
-        userinfo();
-    }, [pagerender,id]);
 
     const handleProfileCoverChange = async (event) => {
         const file = event.target.files[0];
@@ -112,49 +147,51 @@ const Profile = () => {
                 <Leftsidebar />
                 <div className="left-sidebar w-full overflow-auto">
                     <div className='relative'>
-                      {coverPic ?  
-                        <img
-                            className="w-full h-96 object-cover"
-                            src={`http://localhost:4000/uploads/${coverPic}`}
-                           
-                        />
-                      :  
-                      <img
-                      className="w-full h-96 object-cover"
-                      src={Coverphoto}
-                     
-                        />
-                      }
+                        {coverPic ?
+                            <img
+                                className="w-full h-96 object-cover"
+                                src={`http://localhost:4000/uploads/${coverPic}`}
+
+                            />
+                            :
+                            <img
+                                className="w-full h-96 object-cover"
+                                src={Coverphoto}
+
+                            />
+                        }
                         <input
                             style={{ display: 'none' }}
                             ref={profileCoverInputRef}
                             onChange={handleProfileCoverChange}
                             type="file"
                         />
-                        
-                            <button
-                                className='absolute bg-slate-300 flex bottom-10 right-12 rounded px-5 py-3'
-                                onClick={triggerProfileCoverInput}
-                            >
-                                <FaCamera className='mt-1 mr-2' />Edit Cover
-                            </button>
-                        
+                    { loginUser === id &&
+                    
+                        <button
+                            className='absolute bg-slate-300 flex bottom-10 right-12 rounded px-5 py-3'
+                            onClick={triggerProfileCoverInput}
+                            
+                        >
+                            <FaCamera className='mt-1 mr-2' />Edit Cover
+                        </button>
+                    }
                     </div>
 
                     <div className='relative mb-28'>
                         <div className='absolute left-10 -top-28'>
-                            {profilePic?
-                            <img
-                                className='w-40 h-40 object-cover rounded-full'
-                                src={`http://localhost:4000/uploads/${profilePic}`}
-                                
-                            />:
-                            <img
-                            className='w-40 h-40 object-cover rounded-full'
-                            src={Profilehoto}
-                            
-                            />
-                            
+                            {profilePic ?
+                                <img
+                                    className='w-40 h-40 object-cover rounded-full'
+                                    src={`http://localhost:4000/uploads/${profilePic}`}
+
+                                /> :
+                                <img
+                                    className='w-40 h-40 object-cover rounded-full'
+                                    src={Profilehoto}
+
+                                />
+
                             }
 
 
@@ -164,22 +201,27 @@ const Profile = () => {
                                 onChange={handleProfilePictureChange}
                                 type="file"
                             />
+                        { loginUser === id &&
+                        
                             <button
                                 className='absolute bottom-0 right-0 bg-gray-500 p-2 rounded-full'
                                 onClick={triggerProfilepicInput}
                             >
                                 <FaCamera className='text-white' />
                             </button>
-
+                        }
 
                             <div className='absolute flex w-full gap-5 left-[24%] mt-3'>
 
                                 <h2 className='font-semibold'>{userinfo.name}</h2>
-                                <button
-                                    className='text-blue-500'
-                                    onClick={() => (toggleUsername(!userformtoggle))}
-                                ><FaEdit />
-                                </button>
+
+                                {id === loginUser &&
+                                    <button
+                                        className='text-blue-500'
+                                        onClick={() => (toggleUsername(!userformtoggle))}
+                                    ><FaEdit />
+                                    </button>
+                                }
                                 {userformtoggle && (
                                     <div className='absolute'>
                                         <form
@@ -202,18 +244,18 @@ const Profile = () => {
                         </div>
 
 
-                        {userinfo._id !== id && (
+                        {loginUser !== id && (
 
-                            <div className='absolute bg-blue-500 text-white px-6 py-1 -top-10 right-24'>
+                            <div className='absolute bg-blue-500 text-white px-6 py-1 top-10 right-24'>
 
-                                <button>+ Follow</button>
+                                <button onClick={handleFollowuser}>{!followings ? '+ Follow' : 'Unfollow'}</button>
                             </div>
 
                         )}
                     </div>
                     <div className="flex m-14">
                         <ProfileFeed profilePic={profilePic} />
-                        <ProfileRightsidebar userinfo={userinfo} setpagerender={setpagerender} />
+                        <ProfileRightsidebar userinfo={userinfo} loginUser={loginUser} setpagerender={setpagerender} />
                     </div>
                 </div>
             </div>

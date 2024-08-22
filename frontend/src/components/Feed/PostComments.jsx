@@ -128,6 +128,7 @@ return () => {
   const toggleChildcomments = (commentId) => {
 
     setchildCommentsVisible((prevState) => ({
+      
       ...prevState,
 
       [commentId]: !prevState[commentId]

@@ -1,62 +1,10 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const fs = require('fs');
 const path = require('path')
 const upload = require('../multer/multer')
 
 const router = express.Router();
-
-//user update
-// router.put('/:id', async (req, res) => {
-
-//     try {
-//         if (req.params.id === req.body.userId || req.user.isAdmin) {
-
-//             if (req.body.password) {
-
-//                 if (req.body.password !== req.body.retypepassword) {
-
-
-//                     return res.status(400).json('passwords are not matched')
-//                 }
-
-//                 const user = await User.findOne({ _id: req.params.id })
-
-//                 const comparepass = await bcrypt.compare(req.body.oldpassword, user.password)
-
-
-//                 if (!comparepass) {
-
-
-//                     return res.status(400).json('Invalid old password')
-
-//                 }
-
-//                 const salt = await bcrypt.genSalt(10)
-
-//                 req.body.password = await bcrypt.hash(req.body.password, salt)
-//                 req.body.retypepassword = await bcrypt.hash(req.body.retypepassword, salt)
-
-//             }
-
-//             const userupdate = await User.findByIdAndUpdate(req.params.id, { $set: req.body })
-
-
-//             return res.json('Account info update successfully')
-//         } else {
-
-//             console.log('u can update yourselt only')
-//         }
-
-//     } catch (error) {
-
-//         console.log(error)
-//     }
-
-
-// })
 
 router.delete('/:id', async (req, res) => {
 
@@ -84,11 +32,11 @@ router.get('/singleuser/:id', async (req, res) => {
         const finduser = await User.findOne({ _id: req.params.id }, { password: 0, retypepassword: 0 })
 
 
-        return res.json(finduser)
+        return res.json({finduser:finduser,loginuser:req.user.userId})
 
     } catch (error) {
 
-        console.log(error)
+        console.log(error)  
     }
 
 
@@ -112,80 +60,39 @@ router.get('/onlineuser', async (req, res) => {
 })
 
 router.put('/follow/:id', async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.params.id });
+        const currentUser = await User.findOne({ _id: req.user.userId });
 
-    if (req.params.id !== req.body.userId) {
+        if (!user.followers.includes(req.user.userId)) {
+            // Add current user to the followers array
+            user.followers.push(req.user.userId);
 
-        try {
+            // Add the user to the following array of the current user
+            currentUser.following.push(req.params.id);
 
-            const user = await User.findOne({ _id: req.params.id })
-            const currentuser = await User.findOne({ _id: req.body.userId })
+            await user.save();
+            await currentUser.save();
 
-            if (!user.followers.includes(req.body.userId)) {
+            return res.json({ msg: 'Followed successfully', following: currentUser.following });
+        } else {
+            // Remove current user from the followers array
+            user.followers.pull(req.user.userId);
 
-                await user.updateOne({ $push: { followers: req.body.userId } })
-                await currentuser.updateOne({ $push: { following: req.params.id } })
+            // Remove the user from the following array of the current user
+            currentUser.following.pull(req.params.id);
 
-                return res.json('follow successfully')
-            } else {
+            await user.save();
+            await currentUser.save();
 
-                return res.status(400).json("u already follow this user")
-            }
-
-
-        } catch (error) {
-
-            console.log(error)
+            return res.json({ msg: 'Unfollowed successfully', following:''});
         }
-
-    } else {
-
-        return res.json('u cant follow yourself')
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: 'An error occurred while trying to follow/unfollow the user' });
     }
+});
 
-
-
-
-})
-
-
-// router.put('/unfollow/:id', async (req, res) => {
-
-//     if (req.params.id !== req.body.userId) {
-
-//         try {
-
-//             const user = await User.findOne({ _id: req.params.id })
-//             const currentuser = await User.findOne({ _id: req.body.userId })
-
-
-//             if (user.followers.includes(req.body.userId)) {
-
-//                 await user.updateOne({ $pull: { followers: req.body.userId } })
-//                 await currentuser.updateOne({ $pull: { following: req.params.id } })
-
-//                 return res.json('unfollow successfully')
-//             } else {
-
-//                 return res.json('u didnot follow this user')
-//             }
-
-
-//         } catch (error) {
-
-//             console.log(error)
-//         }
-
-//     } else {
-
-//         return res.json('u cant unfollow yourself')
-//     }
-
-
-
-
-// })
-
-// api for profile cover photo
 
 router.post('/uploadcover',upload.single('file'),async(req,res)=>{
 

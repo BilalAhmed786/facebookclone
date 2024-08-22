@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Textbox from './Textbox';
 import PostComment from './PostComments';
-import FullScreenLoader from '../Preloader/Preloader';
 import Hoc from '../Hoc/Hoc';
 import { FaCamera } from 'react-icons/fa';
 
