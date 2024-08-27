@@ -45,7 +45,7 @@ const Feed = ({
   const [userinfo, setUser] = useState('');
   const [currentuser, setCurrentuser] = useState({});
 
-
+  
 
 
   // Retrieve data for user posts
@@ -53,6 +53,7 @@ const Feed = ({
     const postRetrieve = async () => {
       try {
         const result = await axios.get('/api/posts/allposts');
+      
         setPostdata(result.data.allPosts); // all data 
         setUser(result.data.Userid); // current userid
       } catch (error) {
@@ -72,7 +73,9 @@ const Feed = ({
     const fetchCurrentUser = async () => {
       try {
         const userdata = await axios.get(`/api/users/singleuser/${userinfo}`);
+        
         setCurrentuser(userdata.data);
+      
       } catch (error) {
         console.error(error);
       }
@@ -93,7 +96,7 @@ const Feed = ({
       <div className="relative">
         <div className="mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2">
-            <img src={`http://localhost:4000/uploads/${currentuser.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
+            <img src={`http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
             <input
               type="text"
               onClick={() => setIsVisible(true)}

@@ -2,14 +2,16 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
+    socketid: {type:String,required:true},
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     retypepassword: { type: String, required: true },
     profilepicture: { type: String, default: "" },
     coverpicture: { type: String, default: "" },
-    followers: { type:Array, default:[] },
-    following: { type: Array, default:[]},
+    status:{ type:String, default:"offline" },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     isAdmin: { type:Boolean, default:false},
     city: { type: String, max:50 },
     from: { type: String, max: 50 },

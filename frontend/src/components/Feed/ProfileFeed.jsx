@@ -47,7 +47,7 @@ const ProfileFeed = ({
   const [userinfo, setUser] = useState('');
   const [currentuser, setCurrentuser] = useState({});
   const { id } = useParams();
-    
+   
 
   // Retrieve data for user posts
   useEffect(() => {
@@ -93,7 +93,7 @@ const ProfileFeed = ({
         <div className="relative">
           <div className="mb-4 p-4 border rounded shadow-sm">
             <div className="flex items-center space-x-2">
-              <img src={`http://localhost:4000/uploads/${currentuser.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
+              <img src={`http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
               <input
                 type="text"
                 onClick={() => setIsVisible(true)}

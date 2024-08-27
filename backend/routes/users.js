@@ -46,10 +46,11 @@ router.get('/singleuser/:id', async (req, res) => {
 router.get('/onlineuser', async (req, res) => {
     try {
 
-        const finduser = await User.find({ _id:{$ne:req.user.userId}  }, { password: 0, retypepassword: 0 })
+        const finduser = await User.findOne({ _id: req.user.userId }, { password: 0, retypepassword: 0 })
+        .populate('followers', 'name profilepicture')
+       
 
-
-        return res.json(finduser)
+        return res.json({finduser:finduser,loginuser:req.user.userId})
 
     } catch (error) {
 

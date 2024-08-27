@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Rightsidebar from '../components/Sidebars/Rightsidebar';
 import Leftsidebar from '../components/Sidebars/Leftsidebar';
 import Topbar from '../components/Topbar/Topbar';
 import Feed from '../components/Feed/Feed';
+
 
 const Home = () => {
 
@@ -16,6 +17,7 @@ const Home = () => {
         <Rightsidebar />
       </div>
     </div>
+  
   </>
   );
 };
