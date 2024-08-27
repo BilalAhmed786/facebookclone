@@ -8,16 +8,13 @@ import { BsEmojiSmileFill, BsPaperclip, BsFillSendFill } from 'react-icons/bs';
 const socket = io('http://localhost:4000', { autoConnect: false });
 
 const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
-    console.log('render')
     const [message, setMessage] = useState('');
     const [showPicker, setShowPicker] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [messages, setMessages] = useState([]);
     const fileInputRef = useRef(null);
     const chatContainerRef = useRef(null); // Reference for the chat container
-   
-
-    console.log(messages)
+    const messagesEndRef = useRef(null); // Reference for the bottom of the chat
 
     // Emoji handler
     const onEmojiClick = (event, emojiObject) => {
@@ -80,7 +77,6 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
         const handleIncomingMessage = (msg) => {
             if (Array.isArray(msg)) {
                 setMessages(msg);
-                
             } else {
                 setMessages((prevMessages) => [...prevMessages, msg]);
             }
@@ -156,7 +152,7 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                                 ))}
                             </div>
                         ))}
-                        
+                        <div ref={messagesEndRef} /> {/* This div will be scrolled into view */}
                     </div>
 
                     <form className="flex flex-col p-4 border-t" onSubmit={handleSendMessage}>
@@ -166,7 +162,7 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Type a message..."
-                                className="w-full p-2  border rounded-lg"
+                                className="w-full p-2 pl-14 border rounded-lg"
                                 style={{ height: selectedFiles.length > 0 ? '80px' : '40px' }}
                             />
                             <div className="flex flex-wrap mt-2">

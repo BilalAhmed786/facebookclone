@@ -2,11 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import LiveChat from '../LiveChat/LiveChat';
-const RightSidebar = () => {
+
+  const RightSidebar = () => {
   const[userlogin,Userlogin] =useState('')
   const[onlineUser,Loggedinnusers] =useState([])
   const[chatuser,Chatuser] =useState('')
-  const [minimized, setMinimized] = useState(true);
+  
+const [minimized, setMinimized] = useState(true);
 
     useEffect(()=>{
 

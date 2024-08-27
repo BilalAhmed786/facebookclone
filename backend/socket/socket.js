@@ -14,9 +14,6 @@ function initializeSocket(server) {
         maxHttpBufferSize: 1e8 // Setting buffer size for large file uploads
     });
 
-    // A map to keep track of users' current chat partners
-    const activeChats = new Map();
-
     io.on('connection', async (socket) => {
         
 
@@ -24,9 +21,9 @@ function initializeSocket(server) {
         socket.on('userid', async (userId) => {
            
             await userLogedInn(socket.id, userId);
-            socket.join(userId); // User joins their own room
            
-            socket.userId = userId;
+                socket.join(userId); //every loginuser will join chat
+           
            
 
      // get loginuser send and receive messages from database
@@ -45,22 +42,6 @@ function initializeSocket(server) {
             } catch (error) {
                 console.error('Error fetching historical messages:', error);
             }
-        });
-
-        // Track the active chat partner
-        socket.on('openChat', (friendId) => {
-            activeChats.set(socket.userId, friendId);
-            
-            // Mark messages from this friend as reviewed
-            Message.updateMany(
-                { sender: friendId, receiver: socket.userId, isreviewed: false },
-                { $set: { isreviewed: true } },
-                (err) => {
-                    if (err) {
-                        console.error('Error updating message review status:', err);
-                    }
-                }
-            );
         });
 
         // Handle chat message
@@ -90,16 +71,9 @@ function initializeSocket(server) {
                     .populate('sender', 'name profilepicture')
                     .populate('receiver', 'name profilepicture');
 
-                // Send messages back tologinuser and to whom it send message
+                // Send messages back tologinuser and to whom it send
                 io.to(receiverId).emit('chatretreive', populatedMessage);
                 io.to(senderId).emit('chatretreive', populatedMessage);
-
-                // Check if the receiver is not actively chatting with the sender
-                const currentChatPartner = activeChats.get(receiverId);
-                if (currentChatPartner !== senderId) {
-                    // Send a notification to the receiver if they are not actively chatting with the sender
-                    io.to(receiverId).emit('newNotification', populatedMessage);
-                }
 
                 console.log('Message saved and emitted successfully');
 
@@ -108,13 +82,8 @@ function initializeSocket(server) {
             }
         });
 
-        socket.on('closeChat', () => {
-            activeChats.delete(socket.userId);
-        });
-
         socket.on('disconnect', async () => {
             console.log(`Client disconnected: ${socket.id}`);
-            activeChats.delete(socket.userId);
             await userLoggedout(socket.id);
         });
     });
