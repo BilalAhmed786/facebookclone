@@ -15,18 +15,18 @@ function initializeSocket(server) {
     });
 
     io.on('connection', async (socket) => {
-        
 
-        
+
+
         socket.on('userid', async (userId) => {
-           
-            await userLogedInn(socket.id, userId);
-           
-                socket.join(userId); //every loginuser will join chat
-           
-           
 
-     // get loginuser send and receive messages from database
+            await userLogedInn(socket.id, userId);
+
+            socket.join(userId); //every loginuser will join chat
+
+
+
+            // get loginuser send and receive messages from database
             try {
                 const messages = await Message.find({
                     $or: [
@@ -34,15 +34,17 @@ function initializeSocket(server) {
                         { receiver: userId }
                     ]
                 })
-                .populate('sender', 'name profilepicture')
-                .populate('receiver', 'name profilepicture')
-                .sort({ createdAt: 1 }); // Sort by creation date in ascending order
+                    .populate('sender', 'name profilepicture')
+                    .populate('receiver', 'name profilepicture')
+                    .sort({ createdAt: 1 }); // Sort by creation date in ascending order
 
                 socket.emit('chatretreive', messages);
             } catch (error) {
                 console.error('Error fetching historical messages:', error);
             }
         });
+
+
 
         // Handle chat message
         socket.on('chatMessage', async (data) => {
@@ -66,12 +68,12 @@ function initializeSocket(server) {
                 });
 
                 const savedMessage = await chatMessage.save();
-               
+
                 const populatedMessage = await Message.findById(savedMessage._id)
                     .populate('sender', 'name profilepicture')
                     .populate('receiver', 'name profilepicture');
 
-                // Send messages back tologinuser and to whom it send
+                // Send messages back to loginuser and to whom it send
                 io.to(receiverId).emit('chatretreive', populatedMessage);
                 io.to(senderId).emit('chatretreive', populatedMessage);
 
@@ -86,6 +88,26 @@ function initializeSocket(server) {
             console.log(`Client disconnected: ${socket.id}`);
             await userLoggedout(socket.id);
         });
+
+
+        //for update notification 
+        socket.on('isreviewed', async (id) => {
+            try {
+
+                await Message.updateMany({ receiver: id }, { $set: { isreviewed: true } });
+
+               io.to(id).emit('reviewstatus','changesuccess')
+                
+               console.log('isreview updated')
+            
+            } catch (error) {
+
+                console.log(error)
+            }
+
+
+
+        })
     });
 
     return io;

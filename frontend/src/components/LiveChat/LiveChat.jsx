@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { FaTimes, FaMinus } from 'react-icons/fa';
 import { io } from 'socket.io-client';
@@ -75,9 +76,9 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
         });
 
         const handleIncomingMessage = (msg) => {
-            if (Array.isArray(msg)) {
+            if (Array.isArray(msg)) { // for all messages when page refresh history messages
                 setMessages(msg);
-            } else {
+            } else { //for current mesasges
                 setMessages((prevMessages) => [...prevMessages, msg]);
             }
         };
@@ -142,11 +143,11 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                                         {file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png') || file.endsWith('.gif') ? (
                                             <img
                                                 src={`http://localhost:4000/uploads/${file}`}
-                                                alt={file.name}
+                                                alt={file}
                                                 className="w-40 h-40 object-cover rounded mt-1"
                                             />
                                         ) : (
-                                            <a href={`http://localhost:4000/uploads/${file}`} download>{file.name}</a>
+                                            <a href={`http://localhost:4000/uploads/${file}`} download={file}>{file}</a>
                                         )}
                                     </div>
                                 ))}

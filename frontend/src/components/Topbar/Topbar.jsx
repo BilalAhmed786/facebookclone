@@ -1,93 +1,134 @@
-// Topbar.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { FaUser, FaComment, FaBell } from 'react-icons/fa';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import Notification from '../Notification/notification';
 import axios from 'axios';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:4000');
 
 const Topbar = () => {
-  const toggleoutside = useRef()
-  const [togglemenu, stateTogglemenu] = useState(false)
-  const[userinfo,stateUserinfo] =useState({})
-  const navigate = useNavigate()
+  const notificationRef = useRef();
+  const profileRef = useRef();
+  const userInfoRef = useRef();
+  const [togglemenu, stateTogglemenu] = useState(false);
+  const [togglenotific, statetogglenotific] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [userInfo, setUserInfo] = useState({});
+  const navigate = useNavigate();
 
+  // Sync userInfo state with ref
+  useEffect(() => {
+    userInfoRef.current = userInfo;
+  }, [userInfo]);
 
-  useEffect(()=>{
+  // Handle socket events
+  useEffect(() => {
+    socket.connect();
 
-    const userinfo = async()=>{
-     
-      try{
-
-        const user = await axios.get('/api/auth/userinfo')
+    const handleIncomingMessages = (newMessages) => {
+      if (!userInfoRef.current._id) return;
+      if (Array.isArray(newMessages)) {
+        const filteredMessages = newMessages
+          .filter((message) => message.sender._id !== userInfoRef.current._id)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setMessages(filteredMessages);
+      } else {
+        if (newMessages.sender._id !== userInfoRef.current._id) {
            
-          stateUserinfo(user.data)
-
-      }catch(error){
-
-        console.log(error)
+          setMessages((prevMessages) => {
+           
+            const updatedMessages = [...prevMessages, newMessages];
+            updatedMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            return updatedMessages;
+          });
+        }
       }
+    };
 
+    const handleReviewStatus = (msg) => {
+      if (msg === 'changesuccess') {
+        // This ensures the notification count updates
+        setMessages((prevMessages) => prevMessages.map((message) => ({
+          ...message,
+          isreviewed: true
+        })));
+      }
+    };
 
+    socket.on('chatretreive', handleIncomingMessages);
+    socket.on('reviewstatus', handleReviewStatus);
 
+    return () => {
+      socket.off('chatretreive', handleIncomingMessages);
+      socket.off('reviewstatus', handleReviewStatus);
+      socket.disconnect();
+    };
+  }, []);
+
+  // Notify the server of the logged-in user
+  useEffect(() => {
+    if (userInfo._id) {
+      socket.emit('userid', userInfo._id);
     }
+  }, [userInfo._id]);
 
-    userinfo()
-
-
-
-  },[userinfo])
-
+  // Fetch user info
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const user = await axios.get('/api/auth/userinfo');
+        setUserInfo(user.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+        statetogglenotific(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        stateTogglemenu(false);
+      }
+    };
 
-    const handleClickOutside =(e)=>{
+    document.addEventListener('mousedown', handleClickOutside);
 
-      if( toggleoutside.current && !toggleoutside.current.contains(e.target)){
-   
-           stateTogglemenu(false)
-   
-       }
-   }
-
-      document.addEventListener('mousedown', handleClickOutside);
-    
-        return () => {
+    return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-  
+
   const toggleMenu = () => {
+    stateTogglemenu(!togglemenu);
+  };
 
-    stateTogglemenu(!togglemenu)
-  }
-
-  const Logout = async () => {
-
+  const handleLogout = async () => {
     try {
-
-      const res = await axios.post('/api/auth/logout')
-    
-      if(res.data){
-
-        navigate('/')
+      const res = await axios.post('/api/auth/logout');
+      if (res.data) {
+        navigate('/');
       }
-        
-
-    } 
-    catch (error) {
-
-      console.log(error)
+    } catch (error) {
+      console.log(error);
     }
+  };
 
-  }
+  const handleComment = (id) => {
+    statetogglenotific(!togglenotific);
+    socket.emit('isreviewed', id);
+  };
 
   return (
     <div className="bg-blue-600 text-white flex items-center justify-between p-3">
       {/* Logo Section */}
       <div className="flex items-center">
         <div className="text-2xl font-bold">
-          <Link to="/home">
-            Facebook
-          </Link>
+          <Link to="/home">Facebook</Link>
         </div>
       </div>
 
@@ -99,47 +140,51 @@ const Topbar = () => {
             placeholder="Search for friend, post or video"
             className="w-full p-2 pl-10 rounded-full bg-gray-100 text-black focus:outline-none"
           />
-          <span className="absolute left-0 top-0 mt-2 ml-3 text-gray-500">
-            🔍
-          </span>
+          <span className="absolute left-0 top-0 mt-2 ml-3 text-gray-500">🔍</span>
         </div>
       </div>
 
       {/* Navigation and Icons */}
       <div className="flex items-center space-x-5">
-
         <div className="flex items-center space-x-5 mr-14">
           {/* Icons */}
           <div className="relative">
-            <span className="material-icons text-sm"><FaUser /></span>
+            <FaUser className="text-sm" />
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">1</span>
           </div>
-          <div className="relative">
-            <span className="material-icons text-sm"><FaComment /></span>
-            <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">2</span>
+          <div className="relative cursor-pointer" onClick={() => handleComment(userInfo._id)}>
+            <FaComment className="text-sm" />
+            <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
+              {messages.filter((view) => view.isreviewed === false).length}
+            </span>
+            {togglenotific && (
+              <div className="absolute cursor-pointer -left-32 mt-2.5" ref={notificationRef} onClick={(e) => e.stopPropagation()}>
+                <Notification notification={messages} />
+              </div>
+            )}
           </div>
           <div className="relative">
-            <span className="material-icons text-sm"><FaBell /></span>
+            <FaBell className="text-sm" />
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">1</span>
           </div>
           {/* Profile Picture */}
           <div onClick={toggleMenu}>
-            <div style={{ display: togglemenu ? 'block' : 'none', zIndex:'9999' }}
-              ref={toggleoutside}
+            <div
+              className={`${togglemenu ? 'block' : 'hidden'} absolute bg-blue-600 mt-12 ml-2 p-5`}
+              ref={profileRef}
               onClick={(e) => e.stopPropagation()}
-              className='absolute bg-blue-600 mt-12 ml-2 p-5'>
-              <ul className='w-full -mt-3'>
-                <li
-                  className='w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300'>
-                  <Link to={`/profile/${userinfo._id}`} >Profile</Link>
+            >
+              <ul className="w-full -mt-3">
+                <li className="w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300">
+                  <Link to={`/profile/${userInfo._id}`}>Profile</Link>
                 </li>
-                <li className='w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300' >
-                  <Link onClick={Logout}>Logout</Link>
+                <li className="w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300">
+                  <Link onClick={handleLogout}>Logout</Link>
                 </li>
               </ul>
             </div>
             <img
-              src={`http://localhost:4000/uploads/${userinfo.profilepicture}`}
+              src={`http://localhost:4000/uploads/${userInfo.profilepicture}`}
               alt="Profile"
               className="w-12 h-12 object-cover ml-6 cursor-pointer rounded-full"
             />

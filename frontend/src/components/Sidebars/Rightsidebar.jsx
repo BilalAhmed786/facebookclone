@@ -8,7 +8,8 @@ import LiveChat from '../LiveChat/LiveChat';
   const[onlineUser,Loggedinnusers] =useState([])
   const[chatuser,Chatuser] =useState('')
   
-const [minimized, setMinimized] = useState(true);
+  
+  const [minimized, setMinimized] = useState(true);
 
     useEffect(()=>{
 
@@ -18,7 +19,7 @@ const [minimized, setMinimized] = useState(true);
             
            const user =  await axios.get('/api/users/onlineuser')
 
-           console.log(user.data.finduser)
+           
               Loggedinnusers(user.data.finduser)
               Userlogin(user.data.loginuser)
 
@@ -35,7 +36,7 @@ const [minimized, setMinimized] = useState(true);
       
         onlineUser()
 
-    },[userlogin])
+    },[])
 
 
 
