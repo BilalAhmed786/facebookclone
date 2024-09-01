@@ -9,7 +9,7 @@ const UserSchema = new mongoose.Schema({
     retypepassword: { type: String, required: true },
     profilepicture: { type: String, default: "" },
     coverpicture: { type: String, default: "" },
-    status:{ type:String, default:"offline" },
+    status:{ type:Number, default:0 },
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     isAdmin: { type:Boolean, default:false},

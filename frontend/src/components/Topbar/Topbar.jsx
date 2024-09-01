@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaUser, FaComment, FaBell } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import Notification from '../Notification/notification';
+import Commentnotification from '../Notification/Commentnotification';
+import Followersnotification from '../Notification/Followersnotification';
 import axios from 'axios';
-import io from 'socket.io-client';
 
-const socket = io('http://localhost:4000');
 
-const Topbar = () => {
+const Topbar = ({socket,followers}) => {
   const notificationRef = useRef();
   const profileRef = useRef();
   const userInfoRef = useRef();
@@ -19,7 +18,9 @@ const Topbar = () => {
 
   // Sync userInfo state with ref
   useEffect(() => {
+
     userInfoRef.current = userInfo;
+
   }, [userInfo]);
 
   // Handle socket events
@@ -27,17 +28,19 @@ const Topbar = () => {
     socket.connect();
 
     const handleIncomingMessages = (newMessages) => {
+
       if (!userInfoRef.current._id) return;
+
       if (Array.isArray(newMessages)) {
         const filteredMessages = newMessages
-          .filter((message) => message.sender._id !== userInfoRef.current._id)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        .filter((message) => message.sender._id !== userInfoRef.current._id)
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setMessages(filteredMessages);
       } else {
         if (newMessages.sender._id !== userInfoRef.current._id) {
-           
+
           setMessages((prevMessages) => {
-           
+
             const updatedMessages = [...prevMessages, newMessages];
             updatedMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             return updatedMessages;
@@ -50,19 +53,18 @@ const Topbar = () => {
       if (msg === 'changesuccess') {
         // This ensures the notification count updates
         setMessages((prevMessages) => prevMessages.map((message) => ({
-          ...message,
-          isreviewed: true
+          ...message, isreviewed: true
+        
         })));
       }
     };
 
     socket.on('chatretreive', handleIncomingMessages);
     socket.on('reviewstatus', handleReviewStatus);
-
     return () => {
       socket.off('chatretreive', handleIncomingMessages);
       socket.off('reviewstatus', handleReviewStatus);
-      socket.disconnect();
+      
     };
   }, []);
 
@@ -154,23 +156,31 @@ const Topbar = () => {
           </div>
           <div className="relative cursor-pointer" onClick={() => handleComment(userInfo._id)}>
             <FaComment className="text-sm" />
+            <div className="absolute z-50 cursor-pointer -left-40 mt-2.5" ref={notificationRef} onClick={(e) => e.stopPropagation()}>
+                <Followersnotification 
+               followers={followers}
+                
+                />
+              </div>
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
               {messages.filter((view) => view.isreviewed === false).length}
             </span>
             {togglenotific && (
-              <div className="absolute cursor-pointer -left-32 mt-2.5" ref={notificationRef} onClick={(e) => e.stopPropagation()}>
-                <Notification notification={messages} />
+              <div className="absolute z-50 cursor-pointer -left-40 mt-2.5" ref={notificationRef} onClick={(e) => e.stopPropagation()}>
+                <Commentnotification 
+                notification={messages} 
+                socket={socket} 
+                statetogglenotific={statetogglenotific}
+                
+                />
               </div>
             )}
           </div>
-          <div className="relative">
-            <FaBell className="text-sm" />
-            <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">1</span>
-          </div>
+        
           {/* Profile Picture */}
           <div onClick={toggleMenu}>
             <div
-              className={`${togglemenu ? 'block' : 'hidden'} absolute bg-blue-600 mt-12 ml-2 p-5`}
+              className={`${togglemenu ? 'block' : 'hidden'} absolute z-50 bg-blue-600 mt-12 ml-2 p-5`}
               ref={profileRef}
               onClick={(e) => e.stopPropagation()}
             >

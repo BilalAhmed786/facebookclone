@@ -9,6 +9,9 @@ import Topbar from '../components/Topbar/Topbar';
 import { FaCamera, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:4000',{autoConnect:false});
 
 const Profile = () => {
     const [coverPic, setCoverPic] = useState('');
@@ -39,7 +42,14 @@ const Profile = () => {
             }
         };
 
+    
         userinfo();
+  
+  return ()=>{
+
+        socket.disconnect()
+  }
+  
     }, [pagerender, id]);
 
     //hand follow users
@@ -142,7 +152,7 @@ const Profile = () => {
 
     return (
         <>
-            <Topbar />
+            <Topbar socket={socket} />
             <div className="flex h-screen">
                 <Leftsidebar />
                 <div className="left-sidebar w-full overflow-auto">

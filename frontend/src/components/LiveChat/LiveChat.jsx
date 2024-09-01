@@ -1,22 +1,21 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { FaTimes, FaMinus } from 'react-icons/fa';
-import { io } from 'socket.io-client';
 import Picker from 'emoji-picker-react';
 import { format } from 'timeago.js';
 import { BsEmojiSmileFill, BsPaperclip, BsFillSendFill } from 'react-icons/bs';
 
-const socket = io('http://localhost:4000', { autoConnect: false });
 
-const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
+const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized, minimized }) => {
     const [message, setMessage] = useState('');
+
     const [showPicker, setShowPicker] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
-    const [messages, setMessages] = useState([]);
+    const [crawlerfriend, setCrawler] = useState('')
     const fileInputRef = useRef(null);
     const chatContainerRef = useRef(null); // Reference for the chat container
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
-
+    const liveChatRef = useRef(null); 
     // Emoji handler
     const onEmojiClick = (event, emojiObject) => {
         setMessage((prevInput) => prevInput + event.emoji);
@@ -34,9 +33,52 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
     };
 
     // Remove a file from the list of selected files
+
     const removeFile = (index) => {
+
         setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
+
+    const handleMiniChat = (friendid, minimized) => {
+
+        setMinimized(!minimized)
+
+        socket.emit('friendinfo', minimized === true ? friendid : 1)
+
+
+    }
+
+
+    const handleCloseChat = () => {
+
+        socket.emit('friendinfo', 1)
+        Chatuser('')
+    }
+
+    //socket emit friend userinfo for chat
+
+    useEffect(() => {
+        // Emit the 'chatuserinfo' event to the server with the friend's user ID
+        socket.emit('friendinfo', minimized === true ? 1 : friend.userid);
+
+        // Define the event listener function
+        const handleUserInfo = (data) => {
+            console.log('Received chat user info:', data);
+            setCrawler(data)
+        };
+
+        // Add the event listener
+        socket.on('friendinfo', handleUserInfo);
+
+        // Cleanup function to remove the event listener
+        return () => {
+            socket.off('friendinfo', handleUserInfo);
+        };
+    }, [socket, friend.userid]); // Added dependencies to ensure correct behavior
+
+
+
+
 
     // Handle sending messages
     const handleSendMessage = (e) => {
@@ -56,6 +98,7 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                     senderId: userlogin,
                     receiverId: friend.userid,
                     content: message,
+                    isreviewed: crawlerfriend === userlogin ? true : false,
                     files: files,
                 });
 
@@ -67,29 +110,6 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
         }
     };
 
-    useEffect(() => {
-        socket.connect();
-        socket.on('connect', () => {
-            if (userlogin) {
-                socket.emit('userid', userlogin);
-            }
-        });
-
-        const handleIncomingMessage = (msg) => {
-            if (Array.isArray(msg)) { // for all messages when page refresh history messages
-                setMessages(msg);
-            } else { //for current mesasges
-                setMessages((prevMessages) => [...prevMessages, msg]);
-            }
-        };
-
-        socket.on('chatretreive', handleIncomingMessage);
-
-        return () => {
-            socket.off('chatretreive', handleIncomingMessage);
-            socket.disconnect();
-        };
-    }, [userlogin, friend]);
 
     // Scroll to bottom when a new message is received
     useEffect(() => {
@@ -99,6 +119,27 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
         }
     }, [messages]);
 
+
+  // Detect clicks outside of the LiveChat component
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if click is outside the LiveChat component
+      if (liveChatRef.current && !liveChatRef.current.contains(event.target)) {
+        Chatuser(null); // Close the chat by setting chatuser to null
+      }
+    };
+
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // Cleanup event listener on component unmount
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [Chatuser]);
+
+
+
     const filteredMessages = messages.length > 0 && messages.filter(
         (msg) => (
             (msg.sender._id === userlogin && msg.receiver._id === friend.userid) ||
@@ -106,8 +147,10 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
         )
     );
 
+
+
     return (
-        <div className={`fixed bottom-0 right-0 w-[360px] border rounded-t-lg bg-white ${minimized ? 'h-12' : 'h-[78%]'}`}>
+        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[360px] border rounded-t-lg bg-white ${minimized ? 'h-12' : 'h-[78%]'}`}>
             <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white">
                 <div className="flex items-center space-x-2">
                     <img
@@ -116,16 +159,17 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                         className="w-8 h-8 rounded-full"
                     />
                     <span>{friend.username}</span>
+
                 </div>
                 <div className="cursor-pointer flex space-x-2">
-                    <FaMinus onClick={() => setMinimized(!minimized)} />
-                    <FaTimes onClick={() => Chatuser('')} />
+                    <FaMinus className='text-xs' onClick={() => handleMiniChat(friend.userid, minimized)} />
+                    <FaTimes className='text-xs' onClick={handleCloseChat} />
                 </div>
             </div>
 
             {!minimized && (
                 <div className="relative flex flex-col h-[90%]">
-                    <div ref={chatContainerRef} className="flex-1 p-2 overflow-y-auto">
+                    <div ref={chatContainerRef} className="left-sidebar flex-1 p-2 overflow-y-auto">
                         {filteredMessages && filteredMessages.map((msg, index) => (
                             <div key={index} className={`mb-2 p-2 rounded-lg ${msg.sender?._id === userlogin ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'}`}>
                                 <div className="flex items-center space-x-2 mb-1">
@@ -137,15 +181,26 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                                     <span className="font-semibold">{msg.sender?.username}</span>
                                     <span className="text-gray-500 text-sm ml-2">{format(msg.createdAt)}</span>
                                 </div>
-                                {msg.content && <p>{msg.content}</p>}
+                                {msg.content && <p className='text-black'>{msg.content}</p>}
                                 {msg.files && msg.files.map((file, fileIndex) => (
                                     <div key={fileIndex}>
                                         {file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png') || file.endsWith('.gif') ? (
-                                            <img
-                                                src={`http://localhost:4000/uploads/${file}`}
-                                                alt={file}
-                                                className="w-40 h-40 object-cover rounded mt-1"
-                                            />
+                                            <div className=''>
+                                                <img
+                                                    src={`http://localhost:4000/uploads/${file}`}
+                                                    alt={file}
+                                                    className="w-40 h-40 object-cover rounded mt-1"
+                                                />
+                                                <a
+                                                    href={`http://localhost:4000/uploads/${file}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    download
+                                                    className="underline text-blue-500"
+                                                >
+                                                    Download
+                                                </a>
+                                            </div>
                                         ) : (
                                             <a href={`http://localhost:4000/uploads/${file}`} download={file}>{file}</a>
                                         )}
@@ -163,12 +218,13 @@ const LiveChat = ({ friend, Chatuser, userlogin, setMinimized, minimized }) => {
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 placeholder="Type a message..."
-                                className="w-full p-2 pl-14 border rounded-lg"
+                                className="w-full text-black p-2 pl-14 border rounded-lg"
                                 style={{ height: selectedFiles.length > 0 ? '80px' : '40px' }}
                             />
                             <div className="flex flex-wrap mt-2">
                                 {selectedFiles.map((file, index) => (
                                     <div key={index} className="relative m-1 p-2 border rounded bg-gray-100 flex items-center">
+
                                         {file.type.startsWith('image/') ? (
                                             <img
                                                 src={URL.createObjectURL(file)}

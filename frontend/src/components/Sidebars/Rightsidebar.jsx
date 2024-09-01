@@ -1,44 +1,55 @@
-// src/components/RightSidebar.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import LiveChat from '../LiveChat/LiveChat';
 
-  const RightSidebar = () => {
-  const[userlogin,Userlogin] =useState('')
-  const[onlineUser,Loggedinnusers] =useState([])
-  const[chatuser,Chatuser] =useState('')
-  
-  
-  const [minimized, setMinimized] = useState(true);
+const RightSidebar = ({ socket,setFollowersUser,followersUser,userlogin}) => {
+console.log(followersUser)
+  const [chatuser, setChatUser] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [minimized, setMinimized] = useState(false);
 
-    useEffect(()=>{
+  // Setting up socket listeners and connections
+  useEffect(() => {
+    // Ensure socket is connected only once
+    if (!socket.connected) {
+      socket.connect();
+    }
 
-        const onlineUser = async()=>{
+    // Set up socket listener for user status updates
+    socket.on('statusUpdate', (data) => {
+      setFollowersUser((prevData) => {
+        const updatedFollowers = prevData.followers?.map((user) =>
+          user._id === data.userId ? { ...user, status: data.status } : user
+        );
+        return { ...prevData, followers: updatedFollowers };
+      });
+    });
 
-          try{
-            
-           const user =  await axios.get('/api/users/onlineuser')
-
-           
-              Loggedinnusers(user.data.finduser)
-              Userlogin(user.data.loginuser)
-
-          }catch(error){
-
-           
-            console.log(error)
-          
-          }
-
-
-
-        }
+    const handleIncomingMessage = (msg) => {
       
-        onlineUser()
+      if (Array.isArray(msg)) {
+        setMessages(msg);
+      } else {
+        setMessages((prevMessages) => [...prevMessages, msg]);
+      }
+    };
 
-    },[])
+    // Set up socket listener for incoming chat messages
+    socket.on('chatretreive', handleIncomingMessage);
 
+    // Cleanup function to remove listeners
+    return () => {
+      socket.off('statusUpdate');
+      socket.off('chatretreive', handleIncomingMessage);
+    };
+  }, [socket]);
 
+ 
+
+  // Sort followers to place online users first
+  const sortedFollowers = followersUser.followers
+    ? followersUser.followers.sort((a, b) => b.status - a.status)
+    : [];
 
   return (
     <div className="flex-[1] bg-gray-100 p-4 h-screen">
@@ -51,37 +62,38 @@ import LiveChat from '../LiveChat/LiveChat';
         <img src="ad-image-url" alt="Ad" className="rounded" />
       </div>
       <div>
-        <h3 className="font-bold">Online Friends</h3>
-        {onlineUser.followers && onlineUser.followers.map((friend) => (
-          
+        <h3 className="font-bold mb-5">Online Friends</h3>
+        {sortedFollowers.map((friend) => (
           <div
-          onClick={()=>Chatuser({
-            username:friend.name,
-            userid:friend._id,
-            userprofile:friend.profilepicture
-            },
-            setMinimized(false)
-          )}
-          key={friend} 
-          className="flex items-center space-x-2 mb-2 cursor-pointer">
-            <img src={`http://localhost:4000/uploads/${friend.profilepicture}`} alt={friend} className="w-8 h-8 rounded-full" />
+            onClick={() => setChatUser({
+              username: friend.name,
+              userid: friend._id,
+              userprofile: friend.profilepicture,
+            })}
+            key={friend._id}
+            className="relative flex items-center space-x-2 mb-2 cursor-pointer"
+          >
+            {friend.status === 1 ? (
+              <span className="absolute -mt-6 ml-2 w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+            ) : (
+              <span className="w-2 h-2 -ml-2 rounded-full inline-block"></span>
+            )}
+            <img src={`http://localhost:4000/uploads/${friend.profilepicture}`} alt={friend.name} className="w-8 h-8 rounded-full" />
             <span>{friend.name}</span>
           </div>
-         
         ))}
       </div>
-    <>
-  {chatuser &&
-    <LiveChat  
-    friend={chatuser} 
-    Chatuser={Chatuser}
-    userlogin={userlogin} 
-    setMinimized={setMinimized} 
-    minimized={minimized}
-    />
-}
-    </>
-
+      {chatuser && (
+        <LiveChat
+          friend={chatuser}
+          Chatuser={setChatUser}
+          userlogin={userlogin}
+          socket={socket}
+          messages={messages}
+          setMinimized={setMinimized}
+          minimized={minimized}
+        />
+      )}
     </div>
   );
 };

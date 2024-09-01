@@ -47,7 +47,13 @@ router.get('/onlineuser', async (req, res) => {
     try {
 
         const finduser = await User.findOne({ _id: req.user.userId }, { password: 0, retypepassword: 0 })
-        .populate('followers', 'name profilepicture')
+        .populate({
+            path: 'followers',
+            select: 'name profilepicture status', // Include name, profilepicture, and status fields
+            options: {
+                sort: { status: -1 }, // Sort followers by status, e.g., online (1) first then offline (0)
+            },
+        });
        
 
         return res.json({finduser:finduser,loginuser:req.user.userId})

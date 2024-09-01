@@ -19,18 +19,18 @@ const userLogedInn = async (socketid, userid) => {
         }
 
         // Update user's status and socket ID
-        user.status = 'online';
+        user.status = 1;
         user.socketid = socketid;
 
         // Save the updated user
-       const userstatus = await user.save();
+        const userstatus = await user.save();
 
-       if(userstatus){
-       
-        console.log('offline')
-       
-    }
-       
+        if (userstatus) {
+
+           console.log('status update')
+
+        }
+
     } catch (error) {
         console.error('Error updating user status:', error);
     }
@@ -44,19 +44,59 @@ const userLoggedout = async (socketid) => {
 
         // Check if the user was found
         if (!user) {
+
             console.log('User not found');
-           
-            return; 
+
+            return;
         }
 
-        user.status = 'offline';
-        await user.save();
-    
-    } 
+        user.status = 0;
+
+        const userstatus = await user.save();
+
+
+        if (userstatus) {
+
+            return userstatus
+        }
+
+    }
     catch (error) {
         console.error('Error updating user status:', error);
     }
 };
 
 
-module.exports = { userLogedInn, userLoggedout }
+const onlineFriends = async (userid) => {
+
+    try {
+
+        const finduser = await User.findOne({ _id: userid }, { password: 0, retypepassword: 0 })
+            .populate({
+                path: 'followers',
+                select: 'name profilepicture status', // Include name, profilepicture, and status fields
+                options: {
+                    sort: { status: -1 }, // Sort followers by status, e.g., online (1) first then offline (0)
+                },
+            });
+
+
+
+        if (!finduser) {
+
+            console.log('user not found')
+        }
+
+        return finduser
+
+
+    } catch (error) {
+
+
+        console.log(error)
+
+    }
+}
+
+
+module.exports = { userLogedInn, userLoggedout, onlineFriends }
