@@ -2,20 +2,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaTimes, FaMinus } from 'react-icons/fa';
 import Picker from 'emoji-picker-react';
+import  profilephoto from '../../images/profilepic.webp'
 import { format } from 'timeago.js';
+import axios from 'axios';
 import { BsEmojiSmileFill, BsPaperclip, BsFillSendFill } from 'react-icons/bs';
 
 
-const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized, minimized }) => {
-    const [message, setMessage] = useState('');
+const LiveChat = ({ friend,
+    Chatuser,
+    userlogin,
+    socket,
+    setMinimized,
+    minimized,
+    handleUpdatenotific
+}) => {
 
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState([]);
     const [showPicker, setShowPicker] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [crawlerfriend, setCrawler] = useState('')
     const fileInputRef = useRef(null);
     const chatContainerRef = useRef(null); // Reference for the chat container
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
-    const liveChatRef = useRef(null); 
+    const liveChatRef = useRef(null);
     // Emoji handler
     const onEmojiClick = (event, emojiObject) => {
         setMessage((prevInput) => prevInput + event.emoji);
@@ -39,25 +49,28 @@ const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized,
         setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
 
-    const handleMiniChat = (friendid, minimized) => {
+    const handleMiniChat = async (friendid, minimized) => {
 
+
+        handleUpdatenotific(friendid)
+        
         setMinimized(!minimized)
-
+        
         socket.emit('friendinfo', minimized === true ? friendid : 1)
-
-
+    
     }
-
+   
 
     const handleCloseChat = () => {
 
         socket.emit('friendinfo', 1)
-        Chatuser('')
+        Chatuser(false)
     }
 
     //socket emit friend userinfo for chat
 
     useEffect(() => {
+
         // Emit the 'chatuserinfo' event to the server with the friend's user ID
         socket.emit('friendinfo', minimized === true ? 1 : friend.userid);
 
@@ -76,9 +89,48 @@ const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized,
         };
     }, [socket, friend.userid]); // Added dependencies to ensure correct behavior
 
+    useEffect(() => {
+
+        const handleIncomingMessage = (msg) => {
+
+
+            setMessages((prevMessages) => [...prevMessages, msg]);
+
+        };
+
+        // Set up socket listener for incoming chat messages
+        socket.on('chatretreive', handleIncomingMessage);
+
+        return () => {
+            socket.off('chatretreive', handleIncomingMessage);
+        }
+    }, [socket])
+
+
+    useEffect(() => {
+
+        const chatmessages = async () => {
+            try {
+
+
+                const result = await axios.get('/api/livechat/messages')
+
+
+                setMessages(result.data)
 
 
 
+            } catch (error) {
+
+                console.log(error)
+            }
+
+        }
+
+        chatmessages()
+
+
+    }, [])
 
     // Handle sending messages
     const handleSendMessage = (e) => {
@@ -98,7 +150,8 @@ const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized,
                     senderId: userlogin,
                     receiverId: friend.userid,
                     content: message,
-                    isreviewed: crawlerfriend === userlogin ? true : false,
+                    isreviewed: crawlerfriend === userlogin ||
+                     crawlerfriend === 'chat' ? true : false,
                     files: files,
                 });
 
@@ -120,23 +173,25 @@ const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized,
     }, [messages]);
 
 
-  // Detect clicks outside of the LiveChat component
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      // Check if click is outside the LiveChat component
-      if (liveChatRef.current && !liveChatRef.current.contains(event.target)) {
-        Chatuser(null); // Close the chat by setting chatuser to null
-      }
-    };
+    // Detect clicks outside of the LiveChat component
+    useEffect(() => {
+
+        const handleClickOutside = (event) => {
+            socket.emit('friendinfo', 1)
+            // Check if click is outside the LiveChat component
+            if (liveChatRef.current && !liveChatRef.current.contains(event.target)) {
+                Chatuser(null); // Close the chat by setting chatuser to null
+            }
+        };
 
 
-    document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
 
-    // Cleanup event listener on component unmount
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [Chatuser]);
+        // Cleanup event listener on component unmount
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [Chatuser]);
 
 
 
@@ -154,7 +209,7 @@ const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized,
             <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white">
                 <div className="flex items-center space-x-2">
                     <img
-                        src={`http://localhost:4000/uploads/${friend.userprofile}`}
+                        src={friend.userprofile? `http://localhost:4000/uploads/${friend.userprofile}`:profilephoto}
                         alt={friend.username}
                         className="w-8 h-8 rounded-full"
                     />
@@ -174,7 +229,7 @@ const LiveChat = ({ friend, Chatuser, userlogin, socket, messages, setMinimized,
                             <div key={index} className={`mb-2 p-2 rounded-lg ${msg.sender?._id === userlogin ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'}`}>
                                 <div className="flex items-center space-x-2 mb-1">
                                     <img
-                                        src={`http://localhost:4000/uploads/${msg.sender?.profilepicture}`}
+                                        src={msg.sender.profilepicture?`http://localhost:4000/uploads/${msg.sender?.profilepicture}`:profilephoto}
                                         alt={msg.sender?.username}
                                         className="w-6 h-6 rounded-full"
                                     />

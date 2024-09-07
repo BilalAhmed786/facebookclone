@@ -5,6 +5,7 @@ import CommentForm from '../Comments/CommentForm'; // Import your CommentForm co
 import CommentEdit from '../Comments/CommentEdit';
 import Commentreplyedit from '../Comments/Commentreplyedit';
 import CommentreplytoreplyEdit from '../Comments/CommentreplytoreplyEdit';
+import profilephoto from '../../images/profilepic.webp'
 import Postedit from './Postedit';
 import ReplyForm from '../Comments/ReplyForm';
 import Preloader from '../Preloader/Preloader';
@@ -175,7 +176,7 @@ return () => {
     
     <div className="relative mb-4 p-4 border rounded shadow-sm">
       <div className="flex items-center space-x-2 mb-4">
-        <img src={`http://localhost:4000/uploads/${post.user.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
+        <img src={post.user.profilepicture?`http://localhost:4000/uploads/${post.user.profilepicture}`:profilephoto} alt="User" className="w-10 h-10 rounded-full" />
         <div>
           <h2 className="font-bold">{post.user.name}</h2>
           <p className="text-gray-500 text-sm">{format(post.createdAt)}</p>
@@ -269,7 +270,7 @@ return () => {
         {commentsVisible[post._id] && post.comments.map((comment, index) => (
           <div key={index} className="flex flex-col space-y-2">
             <div className="flex items-center space-x-2">
-              <img src={`http://localhost:4000/uploads/${comment.user.profilepicture}`} alt="User" className="w-6 h-6 rounded-full" />
+              <img src={comment.user.profilepicture? `http://localhost:4000/uploads/${comment.user.profilepicture}`:profilephoto} alt="User" className="w-6 h-6 rounded-full" />
               <div className="bg-gray-100 p-2 relative rounded flex-1">
                 <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p><span>{format(comment.createdAt)}</span>
                   {comment.replies.length > 0 &&
@@ -339,7 +340,7 @@ return () => {
             {childcommentsVisible[comment._id] && comment.replies.map((reply, replyIndex) => (
               <>
                 <div key={replyIndex} className="flex items-center space-x-2 ml-8">
-                  <img src={`http://localhost:4000/uploads/${reply.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                  <img src={reply.user.profilepicture ?`http://localhost:4000/uploads/${reply.user.profilepicture}`:profilephoto} alt="User" className="w-5 h-5 rounded-full" />
                   <div className="w-full bg-gray-200 p-2 relative rounded flex-1">
                     <div
                       className='flex gap-2 text-xs'>
@@ -409,7 +410,7 @@ return () => {
                 </div>
                 {reply.replies.map((replies) => (
                   <div key={replyIndex} className="flex items-center space-x-2 ml-14">
-                    <img src={`http://localhost:4000/uploads/${replies.user.profilepicture}`} alt="User" className="w-5 h-5 rounded-full" />
+                    <img src={replies.user.profilepicture?`http://localhost:4000/uploads/${replies.user.profilepicture}`:profilephoto} alt="User" className="w-5 h-5 rounded-full" />
                     <div className="bg-gray-200 w-full relative p-2 rounded flex-1">
                       <div className='flex gap-2 text-xs'>
                         <p className="font-bold">{replies.user.name}</p>

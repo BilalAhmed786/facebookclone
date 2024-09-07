@@ -1,109 +1,78 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FaUser, FaComment, FaBell } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import Profilephoto from '../../images/profilepic.webp'
 import Commentnotification from '../Notification/Commentnotification';
 import Followersnotification from '../Notification/Followersnotification';
 import axios from 'axios';
 
 
-const Topbar = ({socket,followers}) => {
+const Topbar = ({ socket,messages,userInfo,statelivechatnotific}) => {
+  
+  
   const notificationRef = useRef();
-  const profileRef = useRef();
-  const userInfoRef = useRef();
+  
   const [togglemenu, stateTogglemenu] = useState(false);
   const [togglenotific, statetogglenotific] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [userInfo, setUserInfo] = useState({});
+  const [togglefollowers, statetogglefollowers] = useState(false);
+  const [usernotifications, stateNotifications] = useState([])
+  const [followernotificat, statefollowernotific] = useState('')
   const navigate = useNavigate();
 
-  // Sync userInfo state with ref
-  useEffect(() => {
+  
+  //update chate messages notifications 
+  const handleMessagenotif = async (id) => {
 
-    userInfoRef.current = userInfo;
+    socket.emit('friendinfo','chat')
 
-  }, [userInfo]);
+    statetogglenotific(!togglenotific);
 
-  // Handle socket events
-  useEffect(() => {
-    socket.connect();
+    try {
 
-    const handleIncomingMessages = (newMessages) => {
+      const result = await axios.put(`/api/livechat/updatenotification/${id}`)
 
-      if (!userInfoRef.current._id) return;
 
-      if (Array.isArray(newMessages)) {
-        const filteredMessages = newMessages
-        .filter((message) => message.sender._id !== userInfoRef.current._id)
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setMessages(filteredMessages);
-      } else {
-        if (newMessages.sender._id !== userInfoRef.current._id) {
+      if (result) {
 
-          setMessages((prevMessages) => {
+        statelivechatnotific(Date.now())
 
-            const updatedMessages = [...prevMessages, newMessages];
-            updatedMessages.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            return updatedMessages;
-          });
-        }
       }
-    };
 
-    const handleReviewStatus = (msg) => {
-      if (msg === 'changesuccess') {
-        // This ensures the notification count updates
-        setMessages((prevMessages) => prevMessages.map((message) => ({
-          ...message, isreviewed: true
-        
-        })));
-      }
-    };
-
-    socket.on('chatretreive', handleIncomingMessages);
-    socket.on('reviewstatus', handleReviewStatus);
-    return () => {
-      socket.off('chatretreive', handleIncomingMessages);
-      socket.off('reviewstatus', handleReviewStatus);
-      
-    };
-  }, []);
-
-  // Notify the server of the logged-in user
-  useEffect(() => {
-    if (userInfo._id) {
-      socket.emit('userid', userInfo._id);
+    } catch (error) {
+      console.log(error)
     }
-  }, [userInfo._id]);
 
-  // Fetch user info
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const user = await axios.get('/api/auth/userinfo');
-        setUserInfo(user.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchUserInfo();
-  }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
-        statetogglenotific(false);
-      }
-      if (profileRef.current && !profileRef.current.contains(e.target)) {
-        stateTogglemenu(false);
-      }
-    };
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+
+
+  //handle followers notification set 
+  const handleFollowersnotif = async() => {
+   
+    socket.emit('followernotific','follower')
+    
+    
+    statetogglefollowers(!togglefollowers);
+    
+    try{
+
+        const result = await axios.put('/api/notification/updatenotifications')
+
+          console.log(result.data)
+           statefollowernotific(Date.now())
+           
+        
+    }catch(error){
+
+      console.log(error)
+    }
+
+
+
+  }
+
 
   const toggleMenu = () => {
     stateTogglemenu(!togglemenu);
@@ -120,10 +89,77 @@ const Topbar = ({socket,followers}) => {
     }
   };
 
-  const handleComment = (id) => {
-    statetogglenotific(!togglenotific);
-    socket.emit('isreviewed', id);
-  };
+//usernotification
+
+
+useEffect(()=>{
+
+const followeduser = (data)=>{
+console.log(data)
+
+  stateNotifications((prevState)=>[data,...prevState])
+
+}
+
+socket.on('followuser',followeduser)
+
+return ()=>{
+ 
+  socket.off('followuser',followeduser)
+
+}
+
+},[usernotifications])
+
+
+
+  //notification for follow unfollow users
+
+  useEffect(() => {
+
+    const notifications = async () => {
+      try {
+
+        const result = await axios.get('/api/notification/followers')
+
+        console.log(result.data)
+        stateNotifications(result.data)
+        // statesinglefollowuser(result.data.followeduserinfo)
+
+      } catch (error) {
+
+        consoel.log(error)
+      }
+    }
+
+    notifications()
+
+  }, [followernotificat])
+
+
+
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target)) {
+
+        socket.emit('friendinfo','nochat')
+        socket.emit('followernotific','notopen')
+
+        statetogglenotific(false);
+        statetogglefollowers(false);
+        stateTogglemenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      
+    };
+  }, []);
+
 
   return (
     <div className="bg-blue-600 text-white flex items-center justify-between p-3">
@@ -150,51 +186,59 @@ const Topbar = ({socket,followers}) => {
       <div className="flex items-center space-x-5">
         <div className="flex items-center space-x-5 mr-14">
           {/* Icons */}
-          <div className="relative">
+          <div className="relative cursor-pointer"
+            onClick={() => handleFollowersnotif()}>
             <FaUser className="text-sm" />
-            <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">1</span>
-          </div>
-          <div className="relative cursor-pointer" onClick={() => handleComment(userInfo._id)}>
-            <FaComment className="text-sm" />
-            <div className="absolute z-50 cursor-pointer -left-40 mt-2.5" ref={notificationRef} onClick={(e) => e.stopPropagation()}>
-                <Followersnotification 
-               followers={followers}
-                
-                />
-              </div>
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
-              {messages.filter((view) => view.isreviewed === false).length}
-            </span>
-            {togglenotific && (
-              <div className="absolute z-50 cursor-pointer -left-40 mt-2.5" ref={notificationRef} onClick={(e) => e.stopPropagation()}>
-                <Commentnotification 
-                notification={messages} 
-                socket={socket} 
-                statetogglenotific={statetogglenotific}
-                
+              {usernotifications.length>0 && usernotifications.filter((notific)=>notific.isread === false).length}</span>
+            {togglefollowers && (
+              <div className="absolute z-50 cursor-pointer -left-40 mt-2.5"
+                ref={notificationRef} onClick={(e) => e.stopPropagation()}>
+                <Followersnotification
+                  usernotifications={usernotifications}
                 />
               </div>
             )}
           </div>
-        
+          <div className="relative cursor-pointer"
+            onClick={() => handleMessagenotif(userInfo._id)}>
+            <FaComment className="text-sm" />
+            <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
+              {messages.filter((view) => view.isreviewed === false).length}
+            </span>
+            {togglenotific && (
+              <div className="absolute z-50 cursor-pointer -left-40 mt-2.5"
+                ref={notificationRef} onClick={(e) => e.stopPropagation()}>
+                <Commentnotification
+                  notification={messages}
+                  socket={socket}
+                  statetogglenotific={statetogglenotific}
+
+                />
+              </div>
+            )}
+          </div>
+
           {/* Profile Picture */}
           <div onClick={toggleMenu}>
-            <div
-              className={`${togglemenu ? 'block' : 'hidden'} absolute z-50 bg-blue-600 mt-12 ml-2 p-5`}
-              ref={profileRef}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ul className="w-full -mt-3">
-                <li className="w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300">
-                  <Link to={`/profile/${userInfo._id}`}>Profile</Link>
-                </li>
-                <li className="w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300">
-                  <Link onClick={handleLogout}>Logout</Link>
-                </li>
-              </ul>
-            </div>
+            {togglemenu &&
+              <div
+                className='absolute z-50 bg-blue-600 mt-12 ml-2 p-5'
+                ref={notificationRef}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <ul className="w-full -mt-3">
+                  <li className="w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300">
+                    <Link to={`/profile/${userInfo._id}`}>Profile</Link>
+                  </li>
+                  <li className="w-full border-b border-b-white-500 p-2 cursor-pointer hover:text-red-300">
+                    <Link onClick={handleLogout}>Logout</Link>
+                  </li>
+                </ul>
+              </div>
+            }
             <img
-              src={`http://localhost:4000/uploads/${userInfo.profilepicture}`}
+              src={userInfo.profilepicture ? `http://localhost:4000/uploads/${userInfo.profilepicture}` : Profilephoto}
               alt="Profile"
               className="w-12 h-12 object-cover ml-6 cursor-pointer rounded-full"
             />

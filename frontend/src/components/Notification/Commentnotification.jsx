@@ -3,12 +3,10 @@ import { format } from 'timeago.js';
 import LiveChat from '../LiveChat/LiveChat';
 import axios from 'axios';
 
-const Commentnotification = ({ notification, socket}) => {
+const Commentnotification = ({ notification,socket}) => {
   const [chatuser, setChatUser] = useState('');
   const [userlogin, setUserLogin] = useState('');
-  const [messages, setMessages] = useState([]);
   const [minimized, setMinimized] = useState(false);
-
 
 
 const handleMessagenotif =(userdet,e)=>{
@@ -22,51 +20,24 @@ const handleMessagenotif =(userdet,e)=>{
 
   
 }
-
-
-
-  // Fetch the online user on component mount
+ // Fetch the online user on component mount
   useEffect(() => {
     const fetchOnlineUser = async () => {
       try {
         const response = await axios.get('/api/users/onlineuser');
+        
         setUserLogin(response.data.loginuser);
+      
       } catch (error) {
+      
         console.log(error);
+      
       }
     };
 
     fetchOnlineUser();
   }, []);
 
-  // Setup socket connection and listeners
-  useEffect(() => {
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    // Emit user ID when socket is connected
-    if (userlogin) {
-      socket.emit('userid', userlogin);
-    }
-
-    // Listener for incoming chat messages
-    const handleIncomingMessage = (msg) => {
-      console.log(msg);
-      if (Array.isArray(msg)) {
-        setMessages(msg);
-      } else {
-        setMessages((prevMessages) => [...prevMessages, msg]);
-      }
-    };
-
-    socket.on('chatretreive', handleIncomingMessage);
-
-    // Cleanup function to remove listeners
-    return () => {
-      socket.off('chatretreive', handleIncomingMessage);
-    };
-  }, [chatuser]); // Add userlogin as a dependency
 
   return (
     <div className='left-sidebar z-10 m-5 notification border-gray-300 wrapper w-80 bg-slate-100 h-80 overflow-auto rounded'>
@@ -88,7 +59,6 @@ const handleMessagenotif =(userdet,e)=>{
           Chatuser={setChatUser}
           userlogin={userlogin}
           socket={socket}
-          messages={messages}
           setMinimized={setMinimized}
           minimized={minimized}
         />

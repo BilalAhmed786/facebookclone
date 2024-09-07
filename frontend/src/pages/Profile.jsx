@@ -5,7 +5,7 @@ import Leftsidebar from '../components/Sidebars/Leftsidebar';
 import Coverphoto from '../images/cover.jpg'
 import Profilehoto from '../images/profilepic.webp'
 import ProfileFeed from '../components/Feed/ProfileFeed';
-import Topbar from '../components/Topbar/Topbar';
+import Profiletopbar from '../components/Topbar/profiletopbar';
 import { FaCamera, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import { useParams } from 'react-router-dom';
@@ -16,9 +16,10 @@ const socket = io('http://localhost:4000',{autoConnect:false});
 const Profile = () => {
     const [coverPic, setCoverPic] = useState('');
     const [pagerender, setpagerender] = useState('');
-    const [followings,setFollowings]=useState('');
+    const [followeduser,setFolloweduser]=useState('')
     const [profilePic, setProfilePic] = useState('');
     const [userformtoggle, toggleUsername] = useState(false)
+    const [friendinfo,stateFriendinfo]=useState('')
     const [userinfo, setUserinfo] = useState('')
     const [loginUser, setLoginUser] = useState('')
     const [username, setUserName] = useState('')
@@ -27,11 +28,43 @@ const Profile = () => {
     const { id } = useParams();
 
 
+//follow  user notification in real-time
+
+useEffect(()=>{ 
+socket.connect()
+
+socket.emit('followuser',followeduser)
+
+
+const friendInfo = (data)=>{
+
+
+    stateFriendinfo(data === 'follower' ? true : false)
+
+
+
+}
+
+
+
+    socket.on('followernotific',friendInfo)
+
+
+return ()=>{
+
+  socket.off('followuser')
+  socket.off('followernotific',friendInfo)
+  
+}
+
+
+},[followeduser])
+
     useEffect(() => {
         const userinfo = async () => {
             try {
                 const user = await axios.get(`/api/users/singleuser/${id}`);
-                
+               
                 setUserinfo(user.data.finduser)
                 setLoginUser(user.data.loginuser)
                 setUserName(user.data.finduser.name)
@@ -59,12 +92,14 @@ const Profile = () => {
 
         try {
 
-           const result =  await axios.put(`/api/users/follow/${id}`)
+           const result =  await axios.put(`/api/users/follow/${id}`,{ friendinfo:friendinfo ? friendinfo:false})
 
+          
                 
                 toast.success(result.data.msg)
 
-                setFollowings(result.data.following)
+                // setFollowings(result.data.following)
+                setFolloweduser(result.data.followeduserinfo)
 
                 setpagerender(Date.now())
 
@@ -78,10 +113,6 @@ const Profile = () => {
 
 
     }
-
-
-
-
 
 
     //username change handler
@@ -115,6 +146,7 @@ const Profile = () => {
 
             toast.success('Cover photo uploaded successfully');
             setCoverPic(response.data.coverPicturePath); // Update state with new cover picture path
+            setpagerender(Date.now())
         } catch (error) {
             toast.error('Failed to upload cover photo');
             console.error(error);
@@ -135,6 +167,7 @@ const Profile = () => {
 
             toast.success('Profile picture uploaded successfully');
             setProfilePic(response.data.profilePicturePath); // Update state with new profile picture path
+            setpagerender(Date.now())
         } catch (error) {
             toast.error('Failed to upload profile picture');
             console.error(error);
@@ -150,16 +183,16 @@ const Profile = () => {
     };
 
 
-    return (
-        <>
-            <Topbar socket={socket} />
-            <div className="flex h-screen">
+return (
+       <>
+            <Profiletopbar/>
+            <div className="flex h-[85vh]">
                 <Leftsidebar />
                 <div className="left-sidebar w-full overflow-auto">
                     <div className='relative'>
                         {coverPic ?
                             <img
-                                className="w-full h-96 object-cover"
+                                className="w-full h-[460px] object-cover"
                                 src={`http://localhost:4000/uploads/${coverPic}`}
 
                             />
@@ -258,12 +291,12 @@ const Profile = () => {
 
                             <div className='absolute bg-blue-500 text-white px-6 py-1 top-10 right-24'>
 
-                                <button onClick={handleFollowuser}>{!followings ? '+ Follow' : 'Unfollow'}</button>
+                                <button onClick={handleFollowuser}>{!userinfo.followers?.includes(loginUser) ? '+ Follow' : 'Unfollow'}</button>
                             </div>
 
                         )}
                     </div>
-                    <div className="flex m-14">
+                    <div className="flex">
                         <ProfileFeed profilePic={profilePic} />
                         <ProfileRightsidebar userinfo={userinfo} loginUser={loginUser} setpagerender={setpagerender} />
                     </div>

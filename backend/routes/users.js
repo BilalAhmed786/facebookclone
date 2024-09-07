@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
+const Notifications =require('../models/Notification')
 const fs = require('fs');
 const path = require('path')
 const upload = require('../multer/multer')
@@ -18,6 +19,29 @@ router.delete('/:id', async (req, res) => {
         }
 
     } catch (error) {
+
+        console.log(error)
+    }
+
+
+})
+
+//All fbusers accept online user
+router.get('/allusers',async(req,res)=>{
+
+    try{
+
+        const fbusers = await User.find({_id:{$ne:req.user.userId}})
+        
+    if(!fbusers){
+
+        return res.status(403).json('user not found')
+    }
+
+      return res.json(fbusers)
+
+
+    }catch(error){
 
         console.log(error)
     }
@@ -67,35 +91,63 @@ router.get('/onlineuser', async (req, res) => {
 })
 
 router.put('/follow/:id', async (req, res) => {
+    
+
     try {
-        const user = await User.findOne({ _id: req.params.id });
-        const currentUser = await User.findOne({ _id: req.user.userId });
+        const user = await User.findOne({ _id: req.params.id }); // User to be followed/unfollowed
+        const currentUser = await User.findOne({ _id: req.user.userId }); // Logged-in user
+
+        if (!user || !currentUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         if (!user.followers.includes(req.user.userId)) {
-            // Add current user to the followers array
+            // Follow logic
             user.followers.push(req.user.userId);
-
-            // Add the user to the following array of the current user
+           
             currentUser.following.push(req.params.id);
 
+            // Create follow notification
+            const notify = new Notifications({
+                type: 'follow',
+                sender: req.user.userId,
+                receiver: req.params.id, // Receiver is the user being followed
+                isread:req.body?.friendinfo, // Sender is the current user
+                msg: 'started following you'
+            });
+
+
             await user.save();
             await currentUser.save();
+            await notify.save();
+           
+            const userinfo = await Notifications.findOne({_id:notify._id}).populate('sender','name profilepicture')
 
-            return res.json({ msg: 'Followed successfully', following: currentUser.following });
+            return res.json({ msg: 'Followed successfully', following: currentUser.following,followeduserinfo:userinfo });
         } else {
-            // Remove current user from the followers array
+            // Unfollow logic
             user.followers.pull(req.user.userId);
-
-            // Remove the user from the following array of the current user
             currentUser.following.pull(req.params.id);
 
+            // Create unfollow notification (optional, as many apps do not notify about unfollows)
+            const notify = new Notifications({
+                type: 'follow',
+                sender: req.user.userId, // Sender is the current user
+                receiver: req.params.id, // Receiver is the user being unfollowed
+                isread:req.body?.friendinfo,
+                msg: 'stopped following you'
+            });
+
             await user.save();
             await currentUser.save();
+            await notify.save();
 
-            return res.json({ msg: 'Unfollowed successfully', following:''});
+            const userinfo = await Notifications.findOne({_id:notify._id}).populate('sender','name profilepicture')
+           
+            return res.json({ msg: 'Unfollowed successfully', following: currentUser.following,followeduserinfo:userinfo });
         }
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({ error: 'An error occurred while trying to follow/unfollow the user' });
     }
 });

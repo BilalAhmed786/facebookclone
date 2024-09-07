@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { FaEdit } from 'react-icons/fa';
 import ProfileEdit from './ProfileEdit';
+import Profilephoto from '../../images/profilepic.webp'
+
+
+
+
 import axios from 'axios';
 import { useParams,Link } from 'react-router-dom';
 
@@ -77,7 +82,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender,loginUser }) => {
               <Link to={`http://localhost:5173/profile/${follower._id}`}>
               <div key={index} className="text-center">
                 <img
-                  src={`http://localhost:4000/uploads/${follower.profilepicture}`}
+                  src={follower.profilepicture? `http://localhost:4000/uploads/${follower.profilepicture}`:Profilephoto}
                   alt={follower.name}
                   className="w-20 h-20 rounded-lg object-cover"
                 />

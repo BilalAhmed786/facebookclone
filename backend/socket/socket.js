@@ -15,47 +15,27 @@ function initializeSocket(server) {
     });
 
     io.on('connection', (socket) => {
+       
         socket.on('userid', async (userId) => {
             
-            socket.join(userId);
+            socket.join(userId);//every loggedin user connect to socket
             
-            await userLogedInn(socket.id, userId);
+            await userLogedInn(socket.id, userId); // login user status online(1)
            
-            io.emit('statusUpdate', { userId, status: 1 });
+            io.emit('statusUpdate', { userId, status: 1 }); //emit to all loggedin user logedin userstatus(1)
             
             
-            try {
-                const messages = await Message.find({
-                    $or: [{ sender: userId }, { receiver: userId }]
-                })
-                .populate('sender', 'name profilepicture')
-                .populate('receiver', 'name profilepicture')
-                .sort({ createdAt: 1 });
-               
-                socket.emit('chatretreive', messages);
-            } catch (error) {
-                console.error('Error fetching historical messages:', error);
-            }
-          
-        
+           
         });
 
-        //frienduserinfo broadcost to all login users
-        socket.on('friendinfo', (id) => {
-            
-    
-            // Broadcasting the message to all other users
-           
-                socket.broadcast.emit('friendinfo',id);
-           
-        });
-       
-        socket.on('chatMessage', async (data) => {
+        socket.on('chatMessage', async (data) => { //for real-time chat
             const { files, senderId, receiverId, content,isreviewed } = data;
+
+            console.log(isreviewed)
             const savedFiles = [];
             
             try {
-                for (const file of files) {
+                for (const file of files) { //if message has files stored into upload directory
                     const base64Data = file.data.split(',')[1];
                     const buffer = Buffer.from(base64Data, 'base64');
                     const uniqueFileName = `${Date.now()}-${file.name}`;
@@ -85,9 +65,37 @@ function initializeSocket(server) {
                 socket.emit('error', 'An error occurred while sending the message.');
             }
         });
-        
-        
-        socket.on('disconnect', async () => {
+
+
+
+        //track login user currently chat with which friend
+        socket.on('friendinfo', (id) => {
+            
+            socket.broadcast.emit('friendinfo',id);
+           
+        });
+
+       //emit notification to logedin user to whom someone follow in real-time 
+        socket.on('followuser',(followuser)=>{
+
+             io.to(followuser.receiver).emit('followuser',followuser)
+   
+})
+
+    //track loggedin user if its currently open notifications dropdown from topbar
+
+
+         socket.on('followernotific',(msg)=>{
+
+
+         socket.broadcast.emit('followernotific',msg)
+
+
+    })
+    
+       
+     
+    socket.on('disconnect', async () => {
             console.log(`Client disconnected: ${socket.id}`);
             const user = await userLoggedout(socket.id);
             if (user) {
@@ -95,14 +103,7 @@ function initializeSocket(server) {
             }
         });
 
-        socket.on('isreviewed', async (id) => {
-            try {
-                await Message.updateMany({ receiver: id }, { $set: { isreviewed: true } });
-                io.to(id).emit('reviewstatus', 'changesuccess');
-            } catch (error) {
-                console.error('Error updating review status:', error);
-            }
-        });
+       
     });
 
     return io;

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Textbox from './Textbox';
 import PostComment from './PostComments';
+import Profilephoto from '../../images/profilepic.webp'
 import Hoc from '../Hoc/Hoc';
 import { FaCamera } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
@@ -93,7 +94,7 @@ const ProfileFeed = ({
         <div className="relative">
           <div className="mb-4 p-4 border rounded shadow-sm">
             <div className="flex items-center space-x-2">
-              <img src={`http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}`} alt="User" className="w-10 h-10 rounded-full" />
+              <img src={currentuser.finduser?.profilepicture? `http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}`:Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
               <input
                 type="text"
                 onClick={() => setIsVisible(true)}
