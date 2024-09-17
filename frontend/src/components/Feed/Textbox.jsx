@@ -19,7 +19,7 @@ const ColorPicker = ({ setBgColor }) => {
     );
 };
 
-const PostBox = ({ setIsVisible, isVisible }) => {
+const PostBox = ({ setIsVisible, isVisible,socket }) => {
 
     const [bgcolor, setBgColor] = useState('');
     const [text, postMessage] = useState('');
@@ -30,11 +30,14 @@ const PostBox = ({ setIsVisible, isVisible }) => {
             
            const post = await axios.post('/api/posts',{bgcolor,text})
 
-            toast.success(post.data)
-
+            toast.success(post.data.msg)
+            
+            //post user data emit to all its friend on real-time
+            socket.emit('postdata',post.data.postdata) 
+           
+            
             postMessage('')
             setBgColor('')
-
             setIsVisible(false)
 
 

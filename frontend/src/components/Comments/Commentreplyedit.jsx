@@ -2,48 +2,67 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
-const Commentreplyedit = ({ commenteditid,commentreplyid,seteditCommentvisible }) => {
+const Commentreplyedit = (
+  { commenteditid,
+    commentreplyid,
+    seteditCommentvisible,
+    socket
+  }
+) => {
 
 
-  const [comment,setComment]= useState('')
+  const [comment, setComment] = useState('')
 
-  useEffect(()=>{
+  useEffect(() => {
+
+    const getcomment = async () => {
+
+      const commentedit = await axios.post(`/api/comments/childcommentedit/${commenteditid}`, { commentreplyid })
+
+      setComment(commentedit.data)
+
+
+    }
+
+    getcomment()
+
+  }, [])
+
+
+
+  const handleComment = async (e) => {
+
     
-    const getcomment = async()=>{
-
-      const commentedit = await axios.post(`/api/comments/childcommentedit/${commenteditid}`,{commentreplyid})
-
-          setComment(commentedit.data)
-
-
-       }
-
-      getcomment()
-
-  },[])
-
-
-
-  const  handleComment =async(e)=>{
-
     e.preventDefault()
 
-    console.log(comment)
+    try {
 
-try{
-    
-  const result =  await axios.put(`/api/comments/updatechildcomment/${commenteditid}`,{comment,commentreplyid})
+      const result = await axios.put(`/api/comments/updatechildcomment/${commenteditid}`, { comment, commentreplyid })
 
-    toast.success(result.data)
-    
-    setComment("")
-    
-    seteditCommentvisible(false)
+      toast.success(result.data.msg)
 
-  }catch(error){
+      //scoket 
 
-  console.log(error)
-}
+      socket.emit('commentreplyedit', {
+
+        userinfo: result.data.userinfo,
+        comment: result.data.comment,
+        replyedit: result.data.replyedit
+
+
+      })
+
+
+
+
+      setComment("")
+
+      seteditCommentvisible(false)
+
+    } catch (error) {
+
+      console.log(error)
+    }
 
 
 
@@ -53,20 +72,20 @@ try{
 
   return (
     <div className=' bg-gray-100 p-6 shadow-md w-full mt-2 -ml-2'>
-        <button 
-        onClick={()=>seteditCommentvisible(false)}
+      <button
+        onClick={() => seteditCommentvisible(false)}
         className='absolute right-4 top-2 text-xs'
-        >X</button>
+      >X</button>
       <form onSubmit={handleComment} className='flex flex-col space-y-2'>
-        <textarea 
+        <textarea
           placeholder='Edit your comment...'
-          value={comment} 
-          onChange={(e)=>setComment(e.target.value)}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
           className='p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
         />
-        <input 
-          type='submit' 
-          value="Update" 
+        <input
+          type='submit'
+          value="Update"
           className='bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 cursor-pointer'
         />
       </form>

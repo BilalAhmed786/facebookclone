@@ -1,9 +1,11 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import axios from 'axios';
 import { toast } from 'react-toastify';
-
+import io from 'socket.io-client';
+const socket = io('http://localhost:4000',{autoConnect:false});
 const Hoc = (Common) => {
   const Childfunc = () => {
+    
     //for post edit 
     const [editVisible, seteditVisible] = useState(false);
     const [editId, setEditid] = useState(null);
@@ -11,10 +13,10 @@ const Hoc = (Common) => {
     const [commenteditVisible, seteditCommentvisible] = useState({})
     const [commenteditid, setCommenteditid] = useState(null)
     const [commentreplyid, setCommentreplyid] = useState(null)
-
     const [pagerender, setRender] = useState(null);
     const [isVisible, setIsVisible] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [userInfo, setUserInfo] = useState({});
 
 
       const fileInputRef = useRef(null);
@@ -24,9 +26,14 @@ const Hoc = (Common) => {
       try {
         const result = await axios.post(`/api/comments/comment/${postId}`, { text: commentText });
 
-        toast.success(result.data);
+        toast.success(result.data.msg);
 
-        setRender(Date.now())
+       
+          //socket for real time comment to all follow user
+
+          socket.emit('postcomment',{userdet:result.data.postcomment,recentcomment:result.data.recentcomment})
+
+        // setRender(Date.now())
 
       } catch (error) {
         toast.error('Error adding comment');
@@ -42,8 +49,12 @@ const Hoc = (Common) => {
     const handleDelete = async (postId) => {
       try {
         const result = await axios.delete(`/api/posts/${postId}`);
-        toast.success(result.data);
+        toast.success(result.data.msg);
         setRender(Date.now())
+// for socket
+
+        socket.emit('deletepost',result.data.postdelete)
+
       } catch (error) {
         toast.error('Error deleting post');
       }
@@ -80,7 +91,11 @@ const Hoc = (Common) => {
 
         const result = await axios.delete(`/api/comments/removecomment/${commentId}`)
 
-        toast.success(result.data);
+        toast.success(result.data.msg);
+
+        //socket
+
+        socket.emit('deletecommnet',{userinfo:result.data.userinfo,recentcomment:result.data.recentcomment})
 
         setRender(Date.now())
 
@@ -108,11 +123,26 @@ const Hoc = (Common) => {
 
     const handlecommentchilddelte = async (commentId, replyId) => {
 
+     
       try {
 
         const result = await axios.delete(`api/comments/deletechildcomment/${commentId}/${replyId}`)
 
-        toast.success(result.data)
+        toast.success(result.data.msg)
+
+        //socket
+
+        socket.emit('commentreplydelete',{
+
+          comment:result.data.comment,
+          userinfo:result.data.userinfo,
+          replyid:result.data.replyid
+
+
+
+        })
+
+
         setRender(Date.now())
       } catch (error) {
 
@@ -160,7 +190,12 @@ const Hoc = (Common) => {
       try {
         const result = await axios.put(`/api/posts/like/${postId}`);
 
-        toast.success(result.data);
+        toast.success(result.data.msg);
+
+        //socket emit likes array
+
+        socket.emit('likepost',result.data.postlike)
+
 
         setRender(Date.now())
       } catch (error) {
@@ -172,7 +207,13 @@ const Hoc = (Common) => {
     const handleLikeComment = async (commentId) => {
       try {
         const result = await axios.put(`/api/comments/like/${commentId}`);
-        toast.success(result.data);
+       
+        toast.success(result.data.msg);
+       //socket like for real-time
+        
+       socket.emit('commentlike',{userinfo:result.data.userinfo,recentcomment:result.data.recentcomment})
+
+       
         setRender(Date.now())
       } catch (error) {
         toast.error('Error liking comment');
@@ -183,7 +224,18 @@ const Hoc = (Common) => {
 
       try {
         const result = await axios.put(`/api/comments/replylike/${commentId}`, { replyid });
-        toast.success(result.data);
+        toast.success(result.data.msg);
+
+      //socket
+
+          socket.emit('commentreplylike',{
+            userinfo:result.data.userinfo,
+            comment:result.data.comment,
+            commentlike:result.data.commentlike
+
+          })
+
+
         setRender(Date.now())
       } catch (error) {
         toast.error('Error liking comment');
@@ -191,7 +243,9 @@ const Hoc = (Common) => {
     };
 
     const handlereply2replylike = async (replyid) => {
+    
 
+    
       try {
 
         const result = await axios.put(`/api/comments/replytoreplylike/${replyid}`)
@@ -271,6 +325,36 @@ const Hoc = (Common) => {
      
     }
 
+    useEffect(() => {
+      socket.connect(); // Connect the socket before passing it as a prop
+    
+      return () => {
+        socket.disconnect(); // Disconnect when the component unmounts
+      };
+    }, []);
+
+    useEffect(() => {
+      socket.connect()
+      
+      if (userInfo._id) {
+        socket.emit('userid', userInfo._id);
+      }
+    }, [userInfo._id]);
+  
+    // Fetch user info
+   
+    useEffect(() => {
+      const fetchUserInfo = async () => {
+        try {
+          const user = await axios.get('/api/auth/userinfo');
+          setUserInfo(user.data);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+      fetchUserInfo();
+    }, []);
+
 
     return <Common
       handlesharePost={handlesharePost}
@@ -304,6 +388,7 @@ const Hoc = (Common) => {
       isVisible={isVisible}
       fileInputRef={fileInputRef}
       selectedFiles={selectedFiles}
+      socket={socket}
       
 
 

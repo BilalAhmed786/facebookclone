@@ -19,13 +19,14 @@ const ColorPicker = ({ setBgColor }) => {
   );
 };
 
-const Postedit = ({ seteditVisible, editVisible, editId }) => {
+const Postedit = ({ seteditVisible, editVisible, editId,socket,setPostdata }) => {
   const uploadfile = useRef();
   const textAreaRef = useRef(null);
   const [bgcolor, setBgColor] = useState('');
   const [text, setText] = useState('');
   const [images, setImages] = useState([]);
   const [isTextOnly, setIsTextOnly] = useState(false);
+  const[editpostdata,setEditpostdata]=useState({})
 
   const uploadpics = () => {
     uploadfile.current.click();
@@ -59,11 +60,21 @@ const Postedit = ({ seteditVisible, editVisible, editId }) => {
         editId,
         text: combinedData,
       });
-      toast.success(post.data);
+      toast.success(post.data.msg);
+
+//need to emit data
+socket.emit('updatepost',post.data.postdata)
+   
+
+// setEditpostdata(post.data.postdata)
+
       setText('');
       setBgColor('');
       setImages([]);
       seteditVisible(false);
+
+
+
     } catch (error) {
       toast.error(error.response.data);
     }
@@ -123,7 +134,8 @@ const Postedit = ({ seteditVisible, editVisible, editId }) => {
     adjustTextAreaHeight();
   }, [text]);
 
-  if (!editVisible) return null;
+
+if (!editVisible) return null;
 
   return (
     <div  className="left-sidebar w-1/2 h-3/4 min-h-80 overflow-auto top-24 left-[20.5%]  z-10 p-8 bg-white rounded-md shadow-md fixed">-

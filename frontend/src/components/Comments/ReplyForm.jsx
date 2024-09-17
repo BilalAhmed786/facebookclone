@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
-import {toast} from "react-toastify"
+import { toast } from "react-toastify"
 import axios from 'axios';
 
-const ReplyForm = ({commentId,setRender}) => {
+const ReplyForm = ({ commentId, setRender, socket }) => {
   const [replyText, setReplyText] = useState('');
   const textareaRef = useRef(null);
 
@@ -17,14 +17,26 @@ const ReplyForm = ({commentId,setRender}) => {
     textarea.style.height = `${textarea.scrollHeight}px`; // Set to new height
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const result = await axios.post(`/api/comments/reply/${commentId}`, { text: replyText });
 
-      toast.success(result.data);
-    
+      toast.success(result.data.msg);
+
+      //socket work for real-time reply of comment
+
+      socket.emit('commentreply',
+
+        {
+          userinfo: result.data.userinfo,
+          recentcomment: result.data.recentcomment,
+          replycomment: result.data.replycomment
+        })
+
+
+
       setReplyText(''); // Clear the input field after submission
       adjustTextareaHeight(); // Reset textarea height after submission
       setRender(Date.now())
@@ -32,10 +44,10 @@ const ReplyForm = ({commentId,setRender}) => {
     } catch (error) {
       toast.error('Error adding reply');
     }
-  
-  
-  
-  
+
+
+
+
   };
 
   return (

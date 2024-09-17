@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
-const CommentEdit = ({ commenteditid,seteditCommentvisible }) => {
+const CommentEdit = ({ commenteditid,seteditCommentvisible,socket }) => {
 
 
   const [comment,setComment]= useState('')
@@ -13,7 +13,7 @@ const CommentEdit = ({ commenteditid,seteditCommentvisible }) => {
 
       const commentedit = await axios.get(`/api/comments/singlecomment/${commenteditid}`)
 
-        console.log(commentedit.data)
+       
       if(commentedit){
 
         setComment(commentedit.data)
@@ -40,8 +40,13 @@ try{
     
   const result =  await axios.put(`/api/comments/updatecomment/${commenteditid}`,{comment})
 
-    toast.success(result.data)
+    toast.success(result.data.msg)
     
+      //socket emit update comment
+
+      socket.emit('updatecomment',{userinfo:result.data.userinfo,recentcomment:result.data.recentcomment})
+
+
     setComment("")
     
     seteditCommentvisible(false)

@@ -122,7 +122,7 @@ return ()=>{
 
         const result = await axios.get('/api/notification/followers')
 
-        console.log(result.data)
+       
         stateNotifications(result.data)
         // statesinglefollowuser(result.data.followeduserinfo)
 

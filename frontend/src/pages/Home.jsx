@@ -3,10 +3,7 @@ import Rightsidebar from '../components/Sidebars/Rightsidebar';
 import Leftsidebar from '../components/Sidebars/Leftsidebar';
 import Topbar from '../components/Topbar/Topbar';
 import Feed from '../components/Feed/Feed';
-
-
-import io from 'socket.io-client';
-
+import {io} from 'socket.io-client';
 import axios from 'axios';
 
 const socket = io('http://localhost:4000',{autoConnect:false});
@@ -55,6 +52,7 @@ const Home = () => {
 
 
 useEffect(()=>{
+socket.connect()
 
 return ()=>{
  
@@ -65,6 +63,8 @@ return ()=>{
 },[])
   // Notify the server of the logged-in user
   useEffect(() => {
+    socket.connect()
+    
     if (userInfo._id) {
       socket.emit('userid', userInfo._id);
     }
@@ -182,7 +182,7 @@ useEffect(() => {
     <div className='flex'>
       <Leftsidebar />
       <div className='left-sidebar flex w-full h-[90vh] overflow-auto'>
-        <Feed/>
+        <Feed />
         <Rightsidebar 
         socket={socket}
         setFollowersUser={setFollowersUser}

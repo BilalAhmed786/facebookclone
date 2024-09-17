@@ -39,6 +39,8 @@ const PostComment = ({
   setRender,
   editVisible,
   editId,
+  socket,
+
 
 
 }) => {
@@ -323,13 +325,20 @@ return () => {
 
                 </div>
                 <div className='w-full absolute z-50 top-0'>
-                  {commenteditVisible[comment._id] && <CommentEdit commenteditid={commenteditid} seteditCommentvisible={seteditCommentvisible} />}
+                  {commenteditVisible[comment._id] && 
+                  <CommentEdit
+                   commenteditid={commenteditid}
+                    seteditCommentvisible={seteditCommentvisible} 
+                    socket={socket}
+                    />
+                    }
                 </div>
                 {replyformvisible[comment._id] && (
                   <div ref={dropdownRefs}>
                     <ReplyForm
                       commentId={comment._id}
                       setRender={setRender}
+                      socket={socket}
                     />
                   </div>
                 )}
@@ -391,7 +400,15 @@ return () => {
                       </button>
                     </div>
                     <div className='w-full absolute z-50 top-0'>
-                      {commenteditVisible[reply._id] && <Commentreplyedit commenteditid={commenteditid} commentreplyid={commentreplyid} seteditCommentvisible={seteditCommentvisible} />}
+                    {
+                      commenteditVisible[reply._id] && 
+                      <Commentreplyedit 
+                      commenteditid={commenteditid} 
+                      commentreplyid={commentreplyid}
+                      seteditCommentvisible={seteditCommentvisible}
+                      socket={socket}
+                      />
+                    }
                     </div>
                     {replyformvisible[reply._id] && (
                   <div ref={dropdownRefs}>
@@ -401,6 +418,7 @@ return () => {
                       replytomsg ={reply.text}
                       replyto={reply.user.name}
                       setRender={setRender}
+                      socket={socket}
                     />
                   </div>
                 )}
@@ -486,7 +504,14 @@ return () => {
         ))}
         <CommentForm postId={post._id} handleComment={handleComment} />
       </div>
-      {editVisible && <Postedit seteditVisible={seteditVisible} editVisible={editVisible} editId={editId} />}
+      {editVisible && <Postedit 
+      seteditVisible={seteditVisible}
+      editVisible={editVisible}
+      editId={editId}
+      socket={socket} 
+      
+        
+        />}
     </div>
   );
 };

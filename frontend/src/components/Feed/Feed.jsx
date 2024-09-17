@@ -39,15 +39,307 @@ const Feed = ({
   editId,
   fileInputRef,
   selectedFiles,
-  replyform
-}) => {
+  replyform,
+  socket
 
+}) => {
 
   const [postdata, setPostdata] = useState([]);
   const [userinfo, setUser] = useState('');
   const [currentuser, setCurrentuser] = useState({});
 
-  
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+    //for post show in real-time to all followers
+    const handlePostData = (data) => {
+
+      setPostdata((prevState) => [data, ...prevState])
+
+    };
+    //post edit in real time for all follwers
+    const handleUpdatepost = (updatedData) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+
+          post._id === updatedData._id ? updatedData : post // Replace post if IDs match
+
+        )
+      );
+    };
+
+    //post delete for all followers in real-time
+    const handleDeletepost = (deletePost) => {
+
+      setPostdata((prevState) =>
+
+        prevState.filter((post) => post._id !== deletePost._id)
+      );
+    };
+    //post like in real-time to all followers
+    const handleLikepost = (likePost) => {
+
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === likePost._id ? { ...post, likes: [...likePost.likes] } : post
+        )
+      );
+    };
+
+    //first post comment in real-time to all followers
+    const handlePostcomment = (PostComment) => {
+      setPostdata((prevState) =>
+
+        prevState.map((post) =>
+
+          post._id === PostComment.post
+            ? {
+              ...post,
+              comments: post.comments.some(comment => comment._id === PostComment._id)
+                ? post.comments // If the comment already exists, don't add it
+
+                : [PostComment, ...post.comments] // Otherwise, prepend it
+            }
+            : post
+        )
+      );
+    };
+
+
+    //edit first comment in real-timeto all followers
+    const handleUpdatecomment = (UpdateComment) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === UpdateComment.post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === UpdateComment._id
+                  ? UpdateComment // Replace the comment at the same position
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post
+        )
+      );
+    };
+
+    //delete first comment in real-time to all followrs
+    const handleDeletecomment = (DeleteComment) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === DeleteComment.post
+            ? { ...post, comments: post.comments.filter((comment => comment._id !== DeleteComment._id)) }  // Update only the comments field
+            : post
+        )
+      );
+    };
+    //first comment like show in real-time to all followers
+    const handleCommentlike = (CommentLike) => {
+
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === CommentLike.post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === CommentLike._id
+                  ? { ...comment, likes: [...CommentLike.likes] } // Replace the likes array of the specific comment
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post // Keep other posts unchanged
+        )
+      );
+    };
+
+    //first child comment in real-time to all followers   
+    const handleCommentReply = ({ Comment, replyComment }) => {
+
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === Comment.post // Check for the correct post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === Comment._id // Check for the correct comment
+                  ? {
+                    ...comment,
+                    replies: comment.replies.some(replies => replies._id === replyComment._id) ?
+                      comment.replies :
+                      [replyComment, ...comment.replies]
+                  }
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post // Keep other posts unchanged
+        )
+      );
+    };
+
+    //first child comment edit in real-time to all followers  
+    const handleCommentReplyEdit = ({ Comment, replyedit }) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === Comment.post // Check for the correct post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === Comment._id // Check for the correct comment
+                  ? {
+                    ...comment,
+                    replies: comment.replies.map((reply) =>
+                      reply._id === replyedit._id // Check for the correct reply
+                        ? {
+                          ...reply, // Keep other reply fields unchanged
+                          ...replyedit, // Update the reply fields from replyedit object
+                          replytomsg: replyedit.text // Explicitly update replytomsg field if necessary
+                        }
+                        : reply // Keep other replies unchanged
+                    ),
+                  }
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post // Keep other posts unchanged
+        )
+      );
+    };
+
+
+    //first child comment edit in real-time to all followers  
+    const handleCommentReplyDelete = ({ Comment, replyid }) => {
+
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === Comment.post // Check for the correct post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === Comment._id // Check for the correct comment
+                  ? {
+                    ...comment,
+                    replies: [...comment.replies.filter(replies => replies._id !== replyid)]
+                  }
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post // Keep other posts unchanged
+        )
+      );
+    };
+
+
+    //first child comment edit in real-time to all followers  
+    const handleCommentReplyLike = ({ Comment, commentlike }) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === Comment.post // Check for the correct post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === Comment._id // Check for the correct comment
+                  ? {
+                    ...comment,
+                    replies: comment.replies.map((reply) =>
+                      reply._id === commentlike._id // If it's the reply to be liked
+                        ? {
+                          ...reply,
+                          likes: [...commentlike.likes] // Add the like to the reply's likes array
+                        }
+                        : reply // Keep other replies unchanged
+                    )
+                  }
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post // Keep other posts unchanged
+        )
+      );
+    };
+
+
+    const handleReplytoFirstchild = ({ Comment, recentcomment }) => {
+     
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === Comment.post // Check for the correct post
+            ? {
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === Comment._id // Check for the correct comment
+                  ? {
+                    ...comment,
+                   
+                    replies: comment.replies.map((reply) =>
+                   
+                      reply._id === recentcomment.replytoid // If it's the reply to be liked
+                   
+                      ? {
+                          ...reply,
+                         
+                                  replies: reply.replies.some(replies=>replies._id === recentcomment._id)? 
+                          
+                                  reply.replies : [...reply.replies,recentcomment] // Add the like to the reply's likes array
+                       
+                        }
+                        : reply // Keep other replies unchanged
+                    )
+                  }
+                  : comment // Keep other comments unchanged
+              ),
+            }
+            : post // Keep other posts unchanged
+        )
+      );
+    };
+
+
+
+
+
+
+    //post work for  real-time 
+    socket.on('postdata', handlePostData);
+    socket.on('updatepost', handleUpdatepost)
+    socket.on('deletepost', handleDeletepost)
+    socket.on('likepost', handleLikepost)
+
+    // first comment works for real-time
+    socket.on('postcomment', handlePostcomment)
+    socket.on('updatecomment', handleUpdatecomment)
+    socket.on('deletecommnet', handleDeletecomment)
+    socket.on('commentlike', handleCommentlike)
+
+    //first childcomment work for real-time
+
+    socket.on('commentreply', handleCommentReply)
+    socket.on('commentreplyedit', handleCommentReplyEdit)
+    socket.on('commentreplydelete', handleCommentReplyDelete)
+    socket.on('commentreplylike', handleCommentReplyLike)
+
+    //second childcomment work for real-time
+    socket.on('replytofirstchild', handleReplytoFirstchild)
+    
+    return () => {
+      socket.off('postdata', handlePostData);
+      socket.off('updatepost', handleUpdatepost);
+      socket.off('deletepost', handleDeletepost);
+      socket.off('likepost', handleLikepost);
+      socket.off('postcomment', handlePostcomment);
+      socket.off('updatecomment', handleUpdatecomment);
+      socket.off('deletecommnet', handleDeletecomment);
+      socket.off('commentlike', handleCommentlike);
+      socket.off('commentreply', handleCommentReply);
+      socket.off('commentreplyedit', handleCommentReplyEdit);
+      socket.off('commentreplydelete', handleCommentReplyDelete);
+      socket.off('commentreplylike', handleCommentReplyLike)
+      socket.off('replytofirstchild', handleReplytoFirstchild)
+    };
+
+  }, [socket]);
+
 
 
   // Retrieve data for user posts
@@ -55,7 +347,7 @@ const Feed = ({
     const postRetrieve = async () => {
       try {
         const result = await axios.get('/api/posts/allposts');
-      
+
         setPostdata(result.data.allPosts); // all data 
         setUser(result.data.Userid); // current userid
       } catch (error) {
@@ -67,7 +359,7 @@ const Feed = ({
     postRetrieve();
 
 
-  }, [replyform,editVisible, pagerender,postSubmit]);
+  }, [replyform, editVisible, pagerender, postSubmit]);
 
   // Get current user data
 
@@ -75,9 +367,9 @@ const Feed = ({
     const fetchCurrentUser = async () => {
       try {
         const userdata = await axios.get(`/api/users/singleuser/${userinfo}`);
-        
+
         setCurrentuser(userdata.data);
-      
+
       } catch (error) {
         console.error(error);
       }
@@ -89,17 +381,17 @@ const Feed = ({
   }, [userinfo]);
 
 
-  
 
- 
- return (
+
+
+  return (
     <div className="w-2/3 mt-5 flex-[2] bg-white p-4 h-screen">
-      <Fbusers/>
+      <Fbusers />
       {/* Share Post Box */}
       <div className="relative mt-8">
         <div className="mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2">
-            <img src={currentuser.finduser?.profilepicture?`http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}`:Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
+            <img src={currentuser.finduser?.profilepicture ? `http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}` : Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
             <input
               type="text"
               onClick={() => setIsVisible(true)}
@@ -151,7 +443,12 @@ const Feed = ({
           </form>
         </div>
         {/* Textbox component for additional UI elements */}
-        {isVisible && <Textbox setIsVisible={setIsVisible} isVisible={isVisible} />}
+        {isVisible && <Textbox
+          setIsVisible={setIsVisible}
+          isVisible={isVisible}
+          setPostdata={setPostdata}
+          socket={socket}
+        />}
       </div>
       {/* Render Posts Dynamically */}
 
@@ -185,6 +482,8 @@ const Feed = ({
           editVisible={editVisible}
           editId={editId}
           replyform={replyform}
+          socket={socket}
+
 
 
         />

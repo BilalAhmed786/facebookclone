@@ -45,9 +45,42 @@ router.post('/upload', upload.array('files', 10), async (req, res) => {
 
         const postsaved = await post.save();
 
-        if (postsaved) {
+        const postdata = await Post.findOne({_id:post._id.toString()})
 
-            return res.json('Posted Successfully')
+        .sort({ createdAt: -1 }).populate('user').populate({
+            path:'likes',
+            select:"name"
+            })
+            .populate({
+                path: 'comments',
+                options: { sort: { createdAt: -1 } },
+                populate: [
+                    {
+                        path: 'user',
+                        select: 'name profilepicture'
+                    },
+                    {
+                        path: 'replies.user',
+                        select: 'name profilepicture'
+                    },
+    
+                    {
+                        path: 'replies.replies',
+                        populate: {
+                            path: 'user',
+                            select: 'name profilepicture',
+                        }
+                       
+                    }
+                ]
+    
+            })
+
+
+
+        if (postdata) {
+
+            return res.json({msg:'Posted Successfully',postdata:postdata})
         }
 
     } catch (err) {
@@ -75,11 +108,42 @@ router.post('/', async (req, res) => {
             bgcolor
         });
 
-        const postsaved = await post.save();
+           const postsaved = await post.save();
 
-        if (postsaved) {
+           const postdata = await Post.findOne({_id:post._id.toString()})
 
-            return res.json('Posted Successfully')
+            .sort({ createdAt: -1 }).populate('user').populate({
+                path:'likes',
+                select:"name"
+                })
+                .populate({
+                    path: 'comments',
+                    options: { sort: { createdAt: -1 } },
+                    populate: [
+                        {
+                            path: 'user',
+                            select: 'name profilepicture'
+                        },
+                        {
+                            path: 'replies.user',
+                            select: 'name profilepicture'
+                        },
+        
+                        {
+                            path: 'replies.replies',
+                            populate: {
+                                path: 'user',
+                                select: 'name profilepicture',
+                            }
+                           
+                        }
+                    ]
+        
+                })
+
+        if (postdata) {
+
+            return res.json({msg:'Posted Successfully',postdata:postdata})
         }
 
     } catch (err) {
@@ -93,7 +157,6 @@ router.post('/', async (req, res) => {
 // Get single posts
 router.get('/singlepost/:id', async (req, res) => {
 
-    console.log(req.params.id)
     try {
         const post = await Post.findById(req.params.id).populate('user').select('-password -retypepasword').populate('comments');
 
@@ -113,14 +176,19 @@ router.get('/singlepost/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
 
-        const post = await Post.findById(req.params.id)
+        const post = await Post.findById(req.params.id).populate('user');
 
-        if (post.user.toString() === req.user.userId) {
+        if (post.user._id.toString() === req.user.userId) {
 
 
-            await post.deleteOne()
+           const postdelete = await post.deleteOne()
 
-            return res.json('post deleted')
+           if(postdelete){
+
+               return res.json({msg:'post deleted',postdelete:post})
+           
+            }
+
 
         } else {
 
@@ -151,7 +219,7 @@ router.post('/updatepost', async (req, res) => {
 
                 if (err) {
 
-                    console.log(err)
+                    console.log('files not found')
                 }
             })
 
@@ -166,9 +234,43 @@ router.post('/updatepost', async (req, res) => {
         post.text = req.body.text;
         post.bgcolor = req.body.bgcolor; // Assuming bgcolor is also updated
 
-        await post.save();
+          const postedit = await post.save();
+       
+          const postdata = await Post.findOne({_id:postedit._id.toString()})
 
-        res.send('Post updated successfully');
+          .sort({ createdAt: -1 }).populate('user').populate({
+              path:'likes',
+              select:"name"
+              })
+              .populate({
+                  path: 'comments',
+                  options: { sort: { createdAt: -1 } },
+                  populate: [
+                      {
+                          path: 'user',
+                          select: 'name profilepicture'
+                      },
+                      {
+                          path: 'replies.user',
+                          select: 'name profilepicture'
+                      },
+      
+                      {
+                          path: 'replies.replies',
+                          populate: {
+                              path: 'user',
+                              select: 'name profilepicture',
+                          }
+                         
+                      }
+                  ]
+      
+              })
+
+      if (postdata) {
+
+          return res.json({msg:'updated Successfully',postdata:postdata})
+      }
 
     } catch (error) {
 
@@ -185,22 +287,33 @@ router.put('/like/:id', async (req, res) => {
     try {
 
         const post = await Post.findById(req.params.id)
+       
 
 
         if (!post.likes.includes(req.user.userId)) {
 
             post.likes.push(req.user.userId)
 
-            await post.save()
+             const postsave =   await post.save()
 
-            return res.json('post liked')
+             const postfind = await Post.findOne({_id:postsave._id}).populate('user').populate({
+                path:'likes',
+                select:'name'
+             })
+
+            return res.json({msg:'post liked',postlike:postfind})
         } else {
 
             post.likes.pull(req.user.userId)
 
-            await post.save()
+            const postsave = await post.save()
 
-            return res.json('post unliked')
+            const postfind = await Post.findOne({_id:postsave._id}).populate('user').populate({
+                path:'likes',
+                select:'name'
+             })
+
+             return res.json({msg:'post unliked',postlike:postfind})
 
         }
 

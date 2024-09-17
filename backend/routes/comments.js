@@ -25,13 +25,21 @@ router.post('/comment/:id', async (req, res) => {
             text
         });
 
-        await comment.save();
+        const commentsaved =  await comment.save();
 
         post.comments.push(comment._id.toString());
 
-        await post.save();
+        
+        const postcomment = await post.save();
 
-        res.json('comment success');
+        //for socket collect followers of post user and recentcomment of that post
+       
+        const recentcomment = await Comment.findOne({_id:commentsaved._id}).populate('user','name profilepicture')
+        const postdata = await Post.findOne({ _id: postcomment._id }).populate('user')
+      
+
+
+        return res.json({msg:'comment success',postcomment:postdata,recentcomment:recentcomment});
     } catch (err) {
 
         console.error(err.message);
@@ -44,7 +52,7 @@ router.post('/comment/:id', async (req, res) => {
 router.post('/reply/:commentId', async (req, res) => {
     const { commentId } = req.params;
     const { text } = req.body;
-    const userId = req.user.userId; // Assuming you have user authentication and the user's ID is available in req.user
+    const userId = req.user.userId;
 
     if (!text) {
         return res.status(400).json({ message: 'Reply text is required' });
@@ -70,14 +78,36 @@ router.post('/reply/:commentId', async (req, res) => {
         comment.replies.push(newReply);
 
         // Save the updated comment
-        await comment.save();
+        const commentsaved = await comment.save();
 
-        res.status(201).json('Reply added successfully');
+        // Get the newly added reply (the last element in the replies array)
+        const addedReplyId = commentsaved.replies[commentsaved.replies.length - 1]._id;
+
+        // Retrieve the comment again and populate the user in replies
+        const populatedComment = await Comment.findById(commentId)
+          .populate({
+            path: 'replies.user', // Populate the user in the replies array
+            select: 'name profilepicture' // Select the fields you need
+          });
+
+        // Find the newly added reply with populated user
+        const addedReply = populatedComment.replies.find(reply => reply._id.toString() === addedReplyId.toString());
+        const postdata = await Post.findOne({_id: commentsaved.post}, {user: 1}).populate('user');
+       
+
+        res.status(201).json({
+          msg: 'Reply added successfully',
+          userinfo: postdata,
+          recentcomment: populatedComment,
+          replycomment:addedReply
+         
+        });
     } catch (error) {
         console.error('Error adding reply to comment:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 //reply first child comment 
 
@@ -127,9 +157,18 @@ router.post('/reply2firstchild', async (req, res) => {
         reply.replies.push(comment._id.toString())
 
 
-        await parentComment.save()
+        const updatedcomment =   await parentComment.save()
+        const postdata  = await Post.findOne({_id:updatedcomment.post},{user:1}).populate('user', 'followers')
+        const recentcomment  = await Reply.findOne({_id:comment._id}).populate('user','name profilepicture')
 
-        return res.json('comment saved successfully')
+
+        return res.json({
+            
+            msg: 'saved successfully',
+            userinfo:postdata,
+            comment:updatedcomment,
+            recentcomment:recentcomment
+        })
 
     } catch (error) {
 
@@ -220,32 +259,42 @@ router.get('/singlecomment/:id', async (req, res) => {
 
 
 router.delete('/removecomment/:id', async (req, res) => {
+    try {
+     
+        // Populate post and user if the comment was successfully deleted
+        const recentcomment = await Comment.findOne({_id:req.params.id}).populate('user','name profilepicture')
+        
+        // Delete the comment and its replies
+        const usercomment = await Comment.findByIdAndDelete(req.params.id);
+        
+        await Reply.deleteMany({ commentid: req.params.id });
+      
+        const postdata = await Post.findOne({ _id: usercomment.post },{user:1}).populate('user','followers')
+      
 
-    const usercomment = await Comment.findByIdAndDelete(req.params.id)
 
-    const replycomments = await Reply.deleteMany({ commentid: req.params.id })
-
-    if (usercomment && replycomments) {
-
-        return res.json('remove comment')
-
-    } else {
-
-
-        return res.status(500).json('server error')
-
+  
+        return res.json({ msg: 'Comment removed', userinfo:postdata,recentcomment:recentcomment });
+      
+    } catch (err) {
+      console.error(err.message);
+      return res.status(500).json('Server error');
     }
-
-})
+  });
+  
 
 router.put('/updatecomment/:id', async (req, res) => {
 
 
     const comment = await Comment.findOneAndUpdate({ _id: req.params.id }, { $set: { text: req.body.comment } })
 
+
+    const postdata = await Post.findOne({_id:comment.post},{user:1}).populate('user','followers')
+    const updatedcomment = await Comment.findOne({_id:comment._id}).populate('user','name profilepicture')
+
     if (comment) {
 
-        return res.json('update success')
+        return res.json({msg:'update success',userinfo:postdata,recentcomment:updatedcomment})
 
     } else {
 
@@ -289,7 +338,13 @@ router.put('/updatechildcomment/:id', async (req, res) => {
         comment.text = req.body.comment;
 
         // Save the updated comment document
-        await findcomment.save();
+        const updatedcomment = await findcomment.save();
+
+
+        const postdata = await Post.findOne({_id:updatedcomment.post},{user:1}).populate('user','followers')
+        const commentupdate = await Comment.findById(req.params.id).populate('replies.user','name profilepicture')
+
+        const specificreply = commentupdate.replies.find(reply => reply._id.toString() === req.body.commentreplyid);
 
         // Update any reply in the Reply collection where replytoid matches commentreplyid
         const replyUpdateResult = await Reply.updateMany(
@@ -302,7 +357,15 @@ router.put('/updatechildcomment/:id', async (req, res) => {
             console.log('No replies were updated');
         }
 
-        return res.json('Comment updated successfully');
+        return res.json({
+          msg:'Comment updated successfully',
+          userinfo:postdata,
+          comment:commentupdate,
+          replyedit:specificreply
+
+        }
+        
+        );
     } catch (error) {
         console.log(error);
         return res.status(500).json('Server error');
@@ -326,11 +389,18 @@ router.delete('/deletechildcomment/:id/:replyid', async (req, res) => {
         findcomment.replies.pull({ _id: req.params.replyid });
 
         // Save the updated comment document
-        await findcomment.save();
+       const updatedcomment = await findcomment.save();
+
+       const postdata = await Post.findOne({_id:updatedcomment.post},{user:1}).populate('user','followers')
 
         await Reply.deleteMany({ commentid: req.params.id })
 
-        return res.json('deleted successfully')
+        return res.json({
+                msg:'deleted successfully',
+                comment:updatedcomment,
+                userinfo:postdata,
+                replyid:req.params.replyid
+            })
 
     } catch (error) {
 
@@ -426,12 +496,10 @@ router.delete('/replytoreplydelete/:id',async(req,res)=>{
 
 router.put('/like/:id', async (req, res) => {
 
-    console.log(req.user.userId)
+  
     try {
 
         const comment = await Comment.findById(req.params.id)
-
-
 
 
         if (!comment.likes.includes(req.user.userId)) {
@@ -439,19 +507,29 @@ router.put('/like/:id', async (req, res) => {
 
             comment.likes.push(req.user.userId)
 
-            await comment.save()
+          const likesave =  await comment.save()
 
-            res.json('like comment')
+
+          const postdata = await Post.findOne({_id:likesave.post}).populate('user')
+          const recentcomment = await Comment.findOne({_id:likesave._id}).populate('user','name profilepicture')
+
+       
+            res.json({msg:'like comment',userinfo:postdata,recentcomment:recentcomment})
 
         } else {
 
 
-            comment.likes.pull(req.user.userId)
+                comment.likes.pull(req.user.userId)
+            
+                
+            const likesave =  await comment.save()
 
-            await comment.save()
-
-            res.json('unlike comment')
-
+                
+                const postdata = await Post.findOne({_id:likesave.post}).populate('user')
+                const recentcomment = await Comment.findOne({_id:likesave._id}).populate('user','name profilepicture')
+  
+  
+            res.json({msg:'unlike comment',userinfo:postdata,recentcomment:recentcomment})
         }
 
 
@@ -482,18 +560,38 @@ router.put('/replylike/:id', async (req, res) => {
 
             commentfind.likes.push(userId)
 
-            await comment.save()
+           const updatedcomment = await comment.save()
 
-            res.json('comment likes')
+            const postdata = await Post.findOne({_id:updatedcomment.post},{user:1}).populate('user','followers')
+           
+            const replycomment =   updatedcomment.replies.find(reply => reply._id.toString() === replyid)
+          
+            res.json({
+                msg:'comment likes',
+                userinfo:postdata,
+                comment:updatedcomment,
+                commentlike:replycomment
+
+            })
 
 
         } else {
 
             commentfind.likes.pull(userId)
 
-            await comment.save()
+            const updatedcomment = await comment.save()
 
-            res.json('comment unlike')
+            const postdata = await Post.findOne({_id:updatedcomment.post},{user:1}).populate('user','followers')
+           
+            const replycomment =   updatedcomment.replies.find(reply => reply._id.toString() === replyid)
+          
+            res.json({
+                msg:'comment likes',
+                userinfo:postdata,
+                comment:updatedcomment,
+                commentlike:replycomment
+
+            })
 
         }
 

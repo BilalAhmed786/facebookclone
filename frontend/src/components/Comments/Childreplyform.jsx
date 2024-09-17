@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import {toast} from "react-toastify"
 import axios from 'axios';
 
-const Childreplyform = ({replyid,commentid,replytomsg,replyto,setRender}) => {
+const Childreplyform = ({replyid,commentid,replytomsg,replyto,setRender,socket}) => {
   const [replyText, setReplyText] = useState('');
   const textareaRef = useRef(null);
 
@@ -18,14 +18,25 @@ const Childreplyform = ({replyid,commentid,replytomsg,replyto,setRender}) => {
   };
 
   const handleSubmit = async(e) => {
+    
+    
     e.preventDefault();
     
     try {
         const result = await axios.post('/api/comments/reply2firstchild', { text: replyText,replyid,commentid,replytomsg,replyto });
 
-        setRender(Date.now())
+        // setRender(Date.now())
 
-        toast.success(result.data);
+        toast.success(result.data.msg);
+
+
+        //socket
+
+        socket.emit('replytofirstchild',{
+           userinfo:result.data.userinfo,
+          comment:result.data.comment,
+          recentcomment:result.data.recentcomment
+        })
 
 
       } catch (error) {

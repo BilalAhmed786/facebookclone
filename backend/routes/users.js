@@ -95,6 +95,7 @@ router.put('/follow/:id', async (req, res) => {
 
     try {
         const user = await User.findOne({ _id: req.params.id }); // User to be followed/unfollowed
+       
         const currentUser = await User.findOne({ _id: req.user.userId }); // Logged-in user
 
         if (!user || !currentUser) {
