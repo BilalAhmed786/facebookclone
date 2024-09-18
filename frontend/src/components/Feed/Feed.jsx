@@ -109,29 +109,39 @@ const Feed = ({
 
     //edit first comment in real-timeto all followers
     const handleUpdatecomment = (UpdateComment) => {
+     
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === UpdateComment.post
             ? {
-              ...post,
-              comments: post.comments.map((comment) =>
-                comment._id === UpdateComment._id
-                  ? UpdateComment // Replace the comment at the same position
-                  : comment // Keep other comments unchanged
-              ),
-            }
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === UpdateComment._id
+                    ? {
+                        ...comment,
+                        text: UpdateComment.text, // Update only the text of the specific comment
+                      }
+                    : comment // Keep other comments unchanged
+                ),
+              }
             : post
         )
       );
     };
+    
 
     //delete first comment in real-time to all followrs
     const handleDeletecomment = (DeleteComment) => {
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === DeleteComment.post
-            ? { ...post, comments: post.comments.filter((comment => comment._id !== DeleteComment._id)) }  // Update only the comments field
-            : post
+            ? {
+               ...post,
+                comments: post.comments
+                .filter((comment => comment._id !== DeleteComment._id)) 
+              }  // Update only the comments field
+            
+                : post
         )
       );
     };
@@ -145,7 +155,11 @@ const Feed = ({
               ...post,
               comments: post.comments.map((comment) =>
                 comment._id === CommentLike._id
-                  ? { ...comment, likes: [...CommentLike.likes] } // Replace the likes array of the specific comment
+                  ? { 
+                      ...comment,
+                     likes: [...CommentLike.likes]
+                    
+                    } // Replace the likes array of the specific comment
                   : comment // Keep other comments unchanged
               ),
             }
@@ -168,7 +182,7 @@ const Feed = ({
                     ...comment,
                     replies: comment.replies.some(replies => replies._id === replyComment._id) ?
                       comment.replies :
-                      [replyComment, ...comment.replies]
+                      [replyComment,...comment.replies]
                   }
                   : comment // Keep other comments unchanged
               ),
@@ -180,6 +194,7 @@ const Feed = ({
 
     //first child comment edit in real-time to all followers  
     const handleCommentReplyEdit = ({ Comment, replyedit }) => {
+      
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === Comment.post // Check for the correct post
@@ -194,7 +209,7 @@ const Feed = ({
                         ? {
                           ...reply, // Keep other reply fields unchanged
                           ...replyedit, // Update the reply fields from replyedit object
-                          replytomsg: replyedit.text // Explicitly update replytomsg field if necessary
+                          // replytomsg: replyedit.text // Explicitly update replytomsg field if necessary
                         }
                         : reply // Keep other replies unchanged
                     ),
@@ -243,6 +258,7 @@ const Feed = ({
                   ? {
                     ...comment,
                     replies: comment.replies.map((reply) =>
+                     
                       reply._id === commentlike._id // If it's the reply to be liked
                         ? {
                           ...reply,
@@ -295,6 +311,45 @@ const Feed = ({
       );
     };
 
+    const handlereplytoreplyEdit = ({ postid, recentcomment }) => {
+  setPostdata((prevState) =>
+    prevState.map((post) =>
+      post._id === postid // Check for the correct post
+        ? {
+            ...post,
+            comments: post.comments.map((comment) =>
+              comment._id === recentcomment.commentid // Check for the correct comment
+                ? {
+                    ...comment,
+                    replies: comment.replies.map((reply) =>
+                      reply._id === recentcomment.replytoid // Check for the correct reply
+                        ? {
+                                ...reply,
+                                replytomsg:reply.replies.map(replies=>
+                                  replies.replytoid ===recentcomment.replytoid?
+                                  recentcomment.text:reply.replies
+
+                               ),
+                              
+                            replies: reply.replies.map((nestedReply) =>
+                              nestedReply._id === recentcomment._id // Check for the correct nested reply
+                                ? recentcomment // Update the nested reply with the new data
+                                : nestedReply // Keep other nested replies unchanged
+                            ),
+                          }
+                        : reply // Keep other replies unchanged
+                    ),
+                  }
+                : comment // Keep other comments unchanged
+            ),
+          }
+        : post // Keep other posts unchanged
+    )
+  );
+};
+
+    
+    
 
 
 
@@ -321,6 +376,7 @@ const Feed = ({
 
     //second childcomment work for real-time
     socket.on('replytofirstchild', handleReplytoFirstchild)
+    socket.on('replytoreplyedit', handlereplytoreplyEdit)
     
     return () => {
       socket.off('postdata', handlePostData);
@@ -336,6 +392,7 @@ const Feed = ({
       socket.off('commentreplydelete', handleCommentReplyDelete);
       socket.off('commentreplylike', handleCommentReplyLike)
       socket.off('replytofirstchild', handleReplytoFirstchild)
+      socket.off('replytoreplyedit', handlereplytoreplyEdit)
     };
 
   }, [socket]);

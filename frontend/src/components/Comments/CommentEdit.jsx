@@ -34,9 +34,7 @@ const CommentEdit = ({ commenteditid,seteditCommentvisible,socket }) => {
 
     e.preventDefault()
 
-    console.log(comment)
-
-try{
+  try{
     
   const result =  await axios.put(`/api/comments/updatecomment/${commenteditid}`,{comment})
 

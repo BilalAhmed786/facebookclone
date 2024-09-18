@@ -478,7 +478,13 @@ return () => {
                       </div>
 
                       <div className='absolute w-full z-50 top-0'>
-                        {commenteditVisible[replies._id] && <CommentreplytoreplyEdit commenteditid={commenteditid} seteditCommentvisible={seteditCommentvisible} />}
+                        {commenteditVisible[replies._id] &&
+                         <CommentreplytoreplyEdit
+                          commenteditid={commenteditid} 
+                          seteditCommentvisible={seteditCommentvisible}
+                          socket={socket}
+                           />
+                        }
                       </div>
                       {replyformvisible[replies._id] && (
                   <div ref={dropdownRefs}>

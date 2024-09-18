@@ -330,6 +330,25 @@ function initializeSocket(server) {
 
         })   
 
+        socket.on('replytoreplyedit', (data) => {
+
+            const user = []
+
+            user.push(data.userinfo.user._id)
+
+            data.userinfo.user.followers.map((followersid) => {
+
+                user.push(followersid)
+
+
+            io.to(user).emit('replytoreplyedit', {postid:data.userinfo._id,recentcomment:data.recentcomment})
+
+
+
+            })
+
+        })   
+
 
 
         socket.on('disconnect', async () => {

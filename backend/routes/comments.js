@@ -439,8 +439,10 @@ try{
 router.put('/replytoreplyupdate/:id', async (req, res) => {
     try {
         // Update the reply by ID
-        const reply = await Reply.findByIdAndUpdate(req.params.id, { text: req.body.comment }, { new: true });
+        const reply = await Reply.findByIdAndUpdate(req.params.id, { text: req.body.comment }, { new: true })
+        .populate('user','name profilepicture')
 
+        const postdata = await Post.findOne({comments:reply.commentid},{user:1}).populate('user','followers')
         // Check if the reply was found and updated
         if (!reply) {
             return res.status(404).json('Reply not found');
@@ -456,7 +458,11 @@ router.put('/replytoreplyupdate/:id', async (req, res) => {
         
         }
 
-            return res.json('Update successful');
+            return res.json({
+                msg:'Update successful',
+                userinfo:postdata,
+                recentcomment:reply
+            });
     
         } catch (error) {
         
