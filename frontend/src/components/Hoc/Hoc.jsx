@@ -156,7 +156,7 @@ const Hoc = (Common) => {
 
 
     const handlecommentreplytoreplyEdit = (repliesId) => {
-
+    
 
       seteditCommentvisible((prevState) => ({
 
@@ -169,16 +169,26 @@ const Hoc = (Common) => {
     }
 
 
-    const handlecommentreplytoreplyDelete =async(repliesId)=>{
+    const handlecommentreplytoreplyDelete =async(replyid,repliesId)=>{
 
+  
       try{
 
-          const result = await axios.delete(`/api/comments/replytoreplydelete/${repliesId}`)
+          const result = await axios.delete(`/api/comments/replytoreplydelete/${repliesId}/${replyid}`)
 
           
-            toast.success(result.data)
-          
-            setRender(Date.now())
+            toast.success(result.data.msg)
+        
+            //socket
+            socket.emit('replytoreplydelete',{
+              userinfo:result.data.userinfo,
+              recentcomment:result.data.recentcomment,
+              replyid:result.data.replyid
+
+            })
+
+
+          //  setRender(Date.now())
        
           }catch(error){
 
@@ -223,6 +233,7 @@ const Hoc = (Common) => {
 
     const handlecommentreplylike = async (replyid, commentId) => {
 
+      alert('nice')
       try {
         const result = await axios.put(`/api/comments/replylike/${commentId}`, { replyid });
         toast.success(result.data.msg);
@@ -243,18 +254,28 @@ const Hoc = (Common) => {
       }
     };
 
-    const handlereply2replylike = async (replyid) => {
+    const handlereply2replylike = async (replyid,repliesid) => {
     
 
     
       try {
 
-        const result = await axios.put(`/api/comments/replytoreplylike/${replyid}`)
+        const result = await axios.put(`/api/comments/replytoreplylike/${repliesid}/${replyid}`)
 
 
-        toast.success(result.data)
+        toast.success(result.data.msg)
 
-        setRender(Date.now())
+        //socket
+
+        socket.emit('replytoreplylike',{
+          userinfo:result.data.userinfo,
+          recentcomment:result.data.recentcomment,
+          replyid:result.data.replyid
+
+        })
+
+
+        // setRender(Date.now())
 
       } catch (error) {
 

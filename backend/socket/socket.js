@@ -233,7 +233,7 @@ function initializeSocket(server) {
 
         })
 
-        // replycomment 
+        //first replycomment 
        
         socket.on('commentreply', (data) => {
 
@@ -311,6 +311,7 @@ function initializeSocket(server) {
 
         })   
 
+      //2nd reply comment  
         socket.on('replytofirstchild', (data) => {
 
             const user = []
@@ -341,15 +342,87 @@ function initializeSocket(server) {
                 user.push(followersid)
 
 
-            io.to(user).emit('replytoreplyedit', {postid:data.userinfo._id,recentcomment:data.recentcomment})
+            io.to(user).emit('replytoreplyedit',
+                 {
+                postid:data.userinfo._id,
+                recentcomment:data.recentcomment,
+                replyid:data.replyid
+            })
 
 
 
             })
 
-        })   
+        })  
+        
+        socket.on('replytoreplydelete', (data) => {
+
+            const user = []
+
+            user.push(data.userinfo.user._id)
+
+            data.userinfo.user.followers.map((followersid) => {
+
+                user.push(followersid)
 
 
+            io.to(user).emit('replytoreplydelete', {
+                postid:data.userinfo._id,
+                recentcomment:data.recentcomment,
+                replyid:data.replyid
+            })
+
+
+
+            })
+
+        })  
+
+        socket.on('replytoreplylike', (data) => {
+
+            const user = []
+
+            user.push(data.userinfo.user._id)
+
+            data.userinfo.user.followers.map((followersid) => {
+
+                user.push(followersid)
+
+
+            io.to(user).emit('replytoreplylike',
+                
+                {
+                    postid:data.userinfo._id,
+                    recentcomment:data.recentcomment,
+                    replyid:data.replyid
+                })
+
+
+
+            })
+
+        })  
+
+//last child
+
+socket.on('replytolastchild', (data) => {
+
+    const user = []
+
+    user.push(data.userinfo.user._id)
+
+    data.userinfo.user.followers.map((followersid) => {
+
+        user.push(followersid)
+
+
+    io.to(user).emit('replytolastchild', {Comment:data.comment,recentcomment:data.recentcomment,replyid:data.replyid})
+
+
+
+    })
+
+})   
 
         socket.on('disconnect', async () => {
             console.log(`Client disconnected: ${socket.id}`);

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 
-const CommentreplytoreplyEdit = ({ commenteditid,seteditCommentvisible,socket }) => {
+const CommentreplytoreplyEdit = ({ commenteditid,replyid,seteditCommentvisible,socket }) => {
 
 
   const [comment, setComment] = useState('')
@@ -26,12 +26,11 @@ const CommentreplytoreplyEdit = ({ commenteditid,seteditCommentvisible,socket })
 
   const handleComment = async (e) => {
 
-    
     e.preventDefault()
 
     try {
 
-      const result = await axios.put(`/api/comments/replytoreplyupdate/${commenteditid}`, {comment})
+      const result = await axios.put(`/api/comments/replytoreplyupdate/${commenteditid}/${replyid}/`, {comment})
 
       toast.success(result.data.msg)
 
@@ -39,7 +38,8 @@ const CommentreplytoreplyEdit = ({ commenteditid,seteditCommentvisible,socket })
 
   socket.emit('replytoreplyedit',{
     userinfo:result.data.userinfo,
-    recentcomment:result.data.recentcomment
+    recentcomment:result.data.recentcomment,
+    replyid:result.data.replyid
 
   })
       

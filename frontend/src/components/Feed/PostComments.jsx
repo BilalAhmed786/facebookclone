@@ -49,27 +49,28 @@ const PostComment = ({
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDropdowncommentOpen, setIsDropdowncommentOpen] = useState({});
   const [commentsVisible, setCommentsVisible] = useState({});
   const [childcommentsVisible, setchildCommentsVisible] = useState({});
   const [replyformvisible, setReplyformvisible] = useState(false)
 
   //post menu toggle
 
-  const toggleDropdown = (e) => {
+  const toggleDropdown = (postid) => {
 
-    e.stopPropagation(); // Prevent event propagation
-    setIsDropdownOpen(!isDropdownOpen);
+    setIsDropdownOpen((prevState)=>({
+
+      ...prevState,[postid]:!prevState[postid]
+    }))
   };
 
-  const toggleDropdowncomment = (commentid) => {
+  // const toggleDropdowncomment = (commentid) => {
 
-    setIsDropdowncommentOpen((prevState) => ({
+  //   setIsDropdowncommentOpen((prevState) => ({
 
-      ...prevState, [commentid]: !prevState[commentid]
-    }));
+  //     ...prevState, [commentid]: !prevState[commentid]
+  //   }));
 
-  };
+  // };
   const toggleCommentsVisibility = (postId) => {
 
     setCommentsVisible((prevState) => ({
@@ -97,6 +98,8 @@ const PostComment = ({
       setReplyformvisible(false);
     }
   };
+
+
 
 
  useEffect(() => {
@@ -184,10 +187,10 @@ return () => {
           <p className="text-gray-500 text-sm">{format(post.createdAt)}</p>
         </div>
         <div className="ml-auto absolute right-5">
-          <button onClick={(e) => toggleDropdown(e)} className="text-gray-500">
+          <button onClick={(e) => toggleDropdown(post._id)} className="text-gray-500">
             <FaEllipsisH />
           </button>
-          {isDropdownOpen && (
+          {isDropdownOpen[post._id] && (
             <div
               ref={dropdownRefs}
               className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg"
@@ -274,16 +277,17 @@ return () => {
             <div className="flex items-center space-x-2">
               <img src={comment.user.profilepicture? `http://localhost:4000/uploads/${comment.user.profilepicture}`:profilephoto} alt="User" className="w-6 h-6 rounded-full" />
               <div className="bg-gray-100 p-2 relative rounded flex-1">
-                <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p><span>{format(comment.createdAt)}</span>
+                <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p>
+                  <span>{format(comment.createdAt)}</span>
                   {comment.replies.length > 0 &&
                     <button onClick={() => toggleChildcomments(comment._id)}
                       className='ml-9'>{childcommentsVisible[comment._id] ?
                         "Hide all comments" : `View all ${calculateCommentCount(comment.replies)} comments`}
                     </button>}
                   <div className='absolute right-10'>
-                    <button onClick={() => toggleDropdowncomment(comment._id)} className="text-gray-500"><FaEllipsisH /></button>
+                    <button onClick={() => toggleDropdown(comment._id)} className="text-gray-500"><FaEllipsisH /></button>
                   </div>
-                  {isDropdowncommentOpen[comment._id] && (
+                  {isDropdownOpen[comment._id] && (
                     <div
                       ref={dropdownRefs}
                       className="absolute z-10 right-0 mt-4 w-32 bg-white border rounded shadow-lg"
@@ -354,12 +358,18 @@ return () => {
                     <div
                       className='flex gap-2 text-xs'>
                       <p className="font-bold">{reply.user.name}</p>
-                      <span>{format(reply.createdAt)}</span>
+                        <span>{format(reply.createdAt)}</span>
+                        {comment.replies.length > 0 &&
+                    <button onClick={() => toggleChildcomments(reply._id)}
+                      className='ml-9'>{childcommentsVisible[reply._id] ?
+                        "Hide all comments" : `View all ${calculateCommentCount(reply.replies)} comments`}
+                    </button>}
+                      
                       <div className='absolute right-10'>
-                        <button onClick={() => toggleDropdowncomment(reply._id)} className="text-gray-500"><FaEllipsisH /></button>
+                        <button onClick={() => toggleDropdown(reply._id)} className="text-gray-500"><FaEllipsisH /></button>
                       </div>
 
-                      {isDropdowncommentOpen[reply._id] && (
+                      {isDropdownOpen[reply._id] && (
                         <div
                           ref={dropdownRefs}
                           className="absolute z-10 right-0 mt-4 w-32 bg-white border rounded shadow-lg"
@@ -426,7 +436,7 @@ return () => {
                   </div>
 
                 </div>
-                {reply.replies.map((replies) => (
+                {childcommentsVisible[reply._id] && reply.replies.map((replies) => (
                   <div key={replyIndex} className="flex items-center space-x-2 ml-14">
                     <img src={replies.user.profilepicture?`http://localhost:4000/uploads/${replies.user.profilepicture}`:profilephoto} alt="User" className="w-5 h-5 rounded-full" />
                     <div className="bg-gray-200 w-full relative p-2 rounded flex-1">
@@ -434,10 +444,10 @@ return () => {
                         <p className="font-bold">{replies.user.name}</p>
                         <span>{format(replies.createdAt)}</span>
                         <div className='absolute right-10'>
-                          <button onClick={() => toggleDropdowncomment(replies._id)} className="text-gray-500"><FaEllipsisH /></button>
+                          <button onClick={() => toggleDropdown(replies._id)} className="text-gray-500"><FaEllipsisH /></button>
                         </div>
 
-                        {isDropdowncommentOpen[replies._id] && (
+                        {isDropdownOpen[replies._id] && (
                           <div
                             ref={dropdownRefs}
                             className="absolute z-10 right-0 mt-4 w-32 bg-white border rounded shadow-lg"
@@ -451,7 +461,7 @@ return () => {
                               <FaEdit className="mr-2" /> Edit
                             </button>
                             <button
-                              onClick={() => handlecommentreplytoreplyDelete(replies._id)}
+                              onClick={() => handlecommentreplytoreplyDelete(reply._id,replies._id)}
                               disabled={replies.user._id !== userinfo}
                               className="block px-4 py-2 text-left w-full text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:hover:bg-white"
                             >
@@ -464,7 +474,7 @@ return () => {
                       <p className='text-[12px] ml-2'>{replies.replytomsg && replies.replytomsg.length > 15 ? replies.replytomsg.substring(0, 15) + '...' : replies.replytomsg}</p>
                       <p>{replies.text}</p>
                       <div className='flex relative gap-2'>
-                        <button onClick={() => handlereply2replylike(replies._id)} className="flex items-center space-x-1 text-red-500">
+                        <button onClick={() => handlereply2replylike(reply._id,replies._id)} className="flex items-center space-x-1 text-red-500">
                           <span className='text-xs text-black -mr-0.5'>Like</span>
                           <span className='text-[12px] text-black'>{replies.likes.length}</span>
                         </button>
@@ -481,6 +491,7 @@ return () => {
                         {commenteditVisible[replies._id] &&
                          <CommentreplytoreplyEdit
                           commenteditid={commenteditid} 
+                          replyid={reply._id}
                           seteditCommentvisible={seteditCommentvisible}
                           socket={socket}
                            />
@@ -495,6 +506,7 @@ return () => {
                       replyto={replies.user.name}
                       replytomsg={replies.text}
                       setRender={setRender}
+                      socket={socket}
                     />
                   </div>
                 )}

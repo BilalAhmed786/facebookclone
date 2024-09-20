@@ -109,26 +109,26 @@ const Feed = ({
 
     //edit first comment in real-timeto all followers
     const handleUpdatecomment = (UpdateComment) => {
-     
+
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === UpdateComment.post
             ? {
-                ...post,
-                comments: post.comments.map((comment) =>
-                  comment._id === UpdateComment._id
-                    ? {
-                        ...comment,
-                        text: UpdateComment.text, // Update only the text of the specific comment
-                      }
-                    : comment // Keep other comments unchanged
-                ),
-              }
+              ...post,
+              comments: post.comments.map((comment) =>
+                comment._id === UpdateComment._id
+                  ? {
+                    ...comment,
+                    text: UpdateComment.text, // Update only the text of the specific comment
+                  }
+                  : comment // Keep other comments unchanged
+              ),
+            }
             : post
         )
       );
     };
-    
+
 
     //delete first comment in real-time to all followrs
     const handleDeletecomment = (DeleteComment) => {
@@ -136,12 +136,12 @@ const Feed = ({
         prevState.map((post) =>
           post._id === DeleteComment.post
             ? {
-               ...post,
-                comments: post.comments
-                .filter((comment => comment._id !== DeleteComment._id)) 
-              }  // Update only the comments field
-            
-                : post
+              ...post,
+              comments: post.comments
+                .filter((comment => comment._id !== DeleteComment._id))
+            }  // Update only the comments field
+
+            : post
         )
       );
     };
@@ -155,11 +155,11 @@ const Feed = ({
               ...post,
               comments: post.comments.map((comment) =>
                 comment._id === CommentLike._id
-                  ? { 
-                      ...comment,
-                     likes: [...CommentLike.likes]
-                    
-                    } // Replace the likes array of the specific comment
+                  ? {
+                    ...comment,
+                    likes: [...CommentLike.likes]
+
+                  } // Replace the likes array of the specific comment
                   : comment // Keep other comments unchanged
               ),
             }
@@ -182,7 +182,7 @@ const Feed = ({
                     ...comment,
                     replies: comment.replies.some(replies => replies._id === replyComment._id) ?
                       comment.replies :
-                      [replyComment,...comment.replies]
+                      [replyComment, ...comment.replies]
                   }
                   : comment // Keep other comments unchanged
               ),
@@ -194,7 +194,7 @@ const Feed = ({
 
     //first child comment edit in real-time to all followers  
     const handleCommentReplyEdit = ({ Comment, replyedit }) => {
-      
+
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === Comment.post // Check for the correct post
@@ -205,11 +205,18 @@ const Feed = ({
                   ? {
                     ...comment,
                     replies: comment.replies.map((reply) =>
-                      reply._id === replyedit._id // Check for the correct reply
-                        ? {
-                          ...reply, // Keep other reply fields unchanged
-                          ...replyedit, // Update the reply fields from replyedit object
-                          // replytomsg: replyedit.text // Explicitly update replytomsg field if necessary
+                      reply._id === replyedit._id ? // Check for the correct reply
+                        {
+                          ...reply,
+                          text: replyedit.text,
+                          replies: reply.replies.map((replies) =>
+                            replies.replytoid === replyedit._id ?
+                              {
+                                ...replies,
+                                replytomsg: replyedit.text
+                              }
+                              : replies
+                          )
                         }
                         : reply // Keep other replies unchanged
                     ),
@@ -258,7 +265,7 @@ const Feed = ({
                   ? {
                     ...comment,
                     replies: comment.replies.map((reply) =>
-                     
+
                       reply._id === commentlike._id // If it's the reply to be liked
                         ? {
                           ...reply,
@@ -277,7 +284,7 @@ const Feed = ({
 
 
     const handleReplytoFirstchild = ({ Comment, recentcomment }) => {
-     
+
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === Comment.post // Check for the correct post
@@ -287,18 +294,18 @@ const Feed = ({
                 comment._id === Comment._id // Check for the correct comment
                   ? {
                     ...comment,
-                   
+
                     replies: comment.replies.map((reply) =>
-                   
+
                       reply._id === recentcomment.replytoid // If it's the reply to be liked
-                   
-                      ? {
+
+                        ? {
                           ...reply,
-                         
-                                  replies: reply.replies.some(replies=>replies._id === recentcomment._id)? 
-                          
-                                  reply.replies : [...reply.replies,recentcomment] // Add the like to the reply's likes array
-                       
+
+                          replies: reply.replies.some(replies => replies._id === recentcomment._id) ?
+
+                            reply.replies : [recentcomment, ...reply.replies] // Add the like to the reply's likes array
+
                         }
                         : reply // Keep other replies unchanged
                     )
@@ -311,46 +318,150 @@ const Feed = ({
       );
     };
 
-    const handlereplytoreplyEdit = ({ postid, recentcomment }) => {
+    const handlereplytoreplyEdit = ({ postid, recentcomment,replyid }) => {
+      
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === postid // Check for the correct post
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === recentcomment.commentid // Check for the correct comment
+                    ? {
+                        ...comment,
+                        replies: comment.replies.map((reply) =>
+                          reply._id === replyid // Check for the correct reply
+                            ? {
+                                ...reply,
+                                replies: reply.replies.map((nestedReply) =>
+                                  nestedReply._id === recentcomment._id // Check for the correct nested reply
+                                    ? {
+                                        ...nestedReply,
+                                        text: recentcomment.text,
+                                      }
+                                    : nestedReply
+                                ).map((nestedReplyReply) =>
+                                  nestedReplyReply.replytoid === recentcomment._id
+                                    ? {
+                                        ...nestedReplyReply,
+                                        replytomsg: recentcomment.text,
+                                      }
+                                    : nestedReplyReply
+                                ),
+                              }
+                            : reply
+                        ),
+                      }
+                    : comment
+                ),
+              }
+            : post
+        )
+      );
+    };
+    
+
+    const handlereplytoreplyDelete = ({ postid, recentcomment,replyid }) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === postid // Check for the correct post
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === recentcomment.commentid // Check for the correct comment
+                    ? {
+                        ...comment,
+                        replies: comment.replies.map((reply) =>
+                          reply._id === replyid // Check for the correct reply
+                            ? {
+                                ...reply,
+                                replies:[...reply.replies.filter(replies=>replies._id !== recentcomment._id)]
+                              }
+                            : reply
+                        ),
+                      }
+                    : comment
+                ),
+              }
+            : post
+        )
+      );
+    }; 
+
+    const handlereplytoreplyLike = ({ postid, recentcomment,replyid }) => {
+      setPostdata((prevState) =>
+        prevState.map((post) =>
+          post._id === postid // Check for the correct post
+            ? {
+                ...post,
+                comments: post.comments.map((comment) =>
+                  comment._id === recentcomment.commentid // Check for the correct comment
+                    ? {
+                        ...comment,
+                        replies: comment.replies.map((reply) =>
+                  
+                          reply._id === replyid // Check for the correct reply
+                            ? {
+                                ...reply,
+                                replies:reply.replies.map((replied)=>
+                                
+                                  replied._id = recentcomment._id ?
+                                  {
+                                    ...replied,
+                                    likes:[...recentcomment.likes]
+                                  }
+                                
+                                  :replied
+                                )
+                              }
+                            : reply
+                        ),
+                      }
+                    : comment
+                ),
+              }
+            : post
+        )
+      );
+    }; 
+
+//last child
+
+const handleReplytoLastchild = ({ Comment, recentcomment,replyid }) => {
+  
   setPostdata((prevState) =>
     prevState.map((post) =>
-      post._id === postid // Check for the correct post
+      post._id === Comment.post // Check for the correct post
         ? {
-            ...post,
-            comments: post.comments.map((comment) =>
-              comment._id === recentcomment.commentid // Check for the correct comment
-                ? {
-                    ...comment,
-                    replies: comment.replies.map((reply) =>
-                      reply._id === recentcomment.replytoid // Check for the correct reply
-                        ? {
-                                ...reply,
-                                replytomsg:reply.replies.map(replies=>
-                                  replies.replytoid ===recentcomment.replytoid?
-                                  recentcomment.text:reply.replies
+          ...post,
+          comments: post.comments.map((comment) =>
+            comment._id === Comment._id // Check for the correct comment
+              ? {
+                ...comment,
 
-                               ),
-                              
-                            replies: reply.replies.map((nestedReply) =>
-                              nestedReply._id === recentcomment._id // Check for the correct nested reply
-                                ? recentcomment // Update the nested reply with the new data
-                                : nestedReply // Keep other nested replies unchanged
-                            ),
-                          }
-                        : reply // Keep other replies unchanged
-                    ),
-                  }
-                : comment // Keep other comments unchanged
-            ),
-          }
+                replies: comment.replies.map((reply) =>
+
+                  reply._id === replyid // If it's the reply to be liked
+
+                    ? {
+                      ...reply,
+
+                      replies: reply.replies.some(replies => replies._id === recentcomment._id) ?
+
+                        reply.replies : [...reply.replies,recentcomment] // Add the like to the reply's likes array
+
+                    }
+                    : reply // Keep other replies unchanged
+                )
+              }
+              : comment // Keep other comments unchanged
+          ),
+        }
         : post // Keep other posts unchanged
     )
   );
 };
-
-    
-    
-
+ 
 
 
 
@@ -377,7 +488,14 @@ const Feed = ({
     //second childcomment work for real-time
     socket.on('replytofirstchild', handleReplytoFirstchild)
     socket.on('replytoreplyedit', handlereplytoreplyEdit)
-    
+    socket.on('replytoreplydelete', handlereplytoreplyDelete)
+    socket.on('replytoreplylike', handlereplytoreplyLike)
+
+    //last childcomment wor for real-time
+    socket.on('replytolastchild',handleReplytoLastchild)
+
+
+
     return () => {
       socket.off('postdata', handlePostData);
       socket.off('updatepost', handleUpdatepost);
@@ -390,9 +508,13 @@ const Feed = ({
       socket.off('commentreply', handleCommentReply);
       socket.off('commentreplyedit', handleCommentReplyEdit);
       socket.off('commentreplydelete', handleCommentReplyDelete);
-      socket.off('commentreplylike', handleCommentReplyLike)
-      socket.off('replytofirstchild', handleReplytoFirstchild)
-      socket.off('replytoreplyedit', handlereplytoreplyEdit)
+      socket.off('commentreplylike', handleCommentReplyLike);
+      socket.off('replytofirstchild', handleReplytoFirstchild);
+      socket.off('replytoreplyedit', handlereplytoreplyEdit);
+      socket.off('replytoreplydelete', handlereplytoreplyDelete);
+      socket.off('replytoreplylike', handlereplytoreplyLike);
+      socket.off('replytolastchild',handleReplytoLastchild)
+
     };
 
   }, [socket]);
@@ -500,7 +622,7 @@ const Feed = ({
           </form>
         </div>
         {/* Textbox component for additional UI elements */}
-        {isVisible && <Textbox
+        {isVisible && <Textbox  
           setIsVisible={setIsVisible}
           isVisible={isVisible}
           setPostdata={setPostdata}

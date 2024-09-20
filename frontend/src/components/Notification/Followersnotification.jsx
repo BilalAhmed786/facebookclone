@@ -5,7 +5,7 @@ import Profilephoto from '../../images/profilepic.webp'
 const Followersnotification = ({usernotifications}) => {
 
   return (
-    <div className='left-sidebar z-10 m-5 notification border-gray-300 wrapper w-80 bg-slate-100 h-80 overflow-auto rounded'>
+    <div className='left-sidebar z-10 m-5 notification border-gray-300 wrapper w-80 min-h-9 bg-slate-100 rounded overflow-y-auto max-h-72'>
       {usernotifications.length>0 && usernotifications.map((userdet, index) => (
         <ul className='m-3 border-b border-gray-300' key={index}>
           <div 

@@ -182,7 +182,7 @@ router.post('/reply2firstchild', async (req, res) => {
 
 })
 
-//reply to after first child comment
+//reply to 2nd(last)child comment
 router.post('/replytoreply', async (req, res) => {
 
   
@@ -229,9 +229,17 @@ router.post('/replytoreply', async (req, res) => {
         reply.replies.push(comment._id.toString())
 
 
-        await parentComment.save()
-
-        return res.json('comment saved successfully')
+      const updatedcomment =  await parentComment.save()
+      const postdata = await Post.findOne({_id:updatedcomment.post},{user:1}).populate('user','followers')
+      const recentcomment = await Reply.findOne({_id:comment._id}).populate('user','name profilepicture') 
+      
+        return res.json({
+           msg: 'comment saved successfully',
+           userinfo:postdata,
+           comment:updatedcomment,
+           replyid:req.body.replyid,
+           recentcomment:recentcomment
+        })
 
     } catch (error) {
 
@@ -436,7 +444,8 @@ try{
 })
 
 
-router.put('/replytoreplyupdate/:id', async (req, res) => {
+router.put('/replytoreplyupdate/:id/:replyid', async (req, res) => {
+    
     try {
         // Update the reply by ID
         const reply = await Reply.findByIdAndUpdate(req.params.id, { text: req.body.comment }, { new: true })
@@ -461,7 +470,8 @@ router.put('/replytoreplyupdate/:id', async (req, res) => {
             return res.json({
                 msg:'Update successful',
                 userinfo:postdata,
-                recentcomment:reply
+                recentcomment:reply,
+                replyid:req.params.replyid
             });
     
         } catch (error) {
@@ -473,11 +483,20 @@ router.put('/replytoreplyupdate/:id', async (req, res) => {
 });
 
 
-router.delete('/replytoreplydelete/:id',async(req,res)=>{
+router.delete('/replytoreplydelete/:id/:replyid',async(req,res)=>{
 
     try{
 
-            const comment = await Reply.findByIdAndDelete({_id:req.params.id})
+        
+        const recentcomment = await Reply.findById(req.params.id).populate('user')
+        
+        const postdata = await Post.findOne({comments:recentcomment.commentid},{user:1})
+        
+        .populate('user','followers')
+        
+        const comment = await Reply.findByIdAndDelete(req.params.id)
+            
+
 
              if(!comment){
 
@@ -487,7 +506,15 @@ router.delete('/replytoreplydelete/:id',async(req,res)=>{
 
 
             
-            return res.json('deleted successfully')
+            return res.json({
+            
+                msg:'deleted successfully',
+                userinfo:postdata,
+                recentcomment:recentcomment,
+                replyid:req.params.replyid
+            
+
+            })
        
 
 
@@ -610,7 +637,7 @@ router.put('/replylike/:id', async (req, res) => {
 
 
 
-router.put('/replytoreplylike/:id', async (req, res) => {
+router.put('/replytoreplylike/:id/:replyid', async (req, res) => {
 
     try {
 
@@ -621,17 +648,35 @@ router.put('/replytoreplylike/:id', async (req, res) => {
 
             comment.likes.push(req.user.userId)
 
-            await comment.save()
+          const updatedcomment =   await comment.save()
 
-            res.json('like comment')
+          const postdata = await Post.findOne({comments:updatedcomment.commentid},{user:1}).populate('user','followers')
+            
+          
+          res.json({
+
+              msg:'like comment',
+              userinfo:postdata,
+              recentcomment:updatedcomment,
+              replyid:req.params.replyid
+          })
 
         } else {
 
             comment.likes.pull(req.user.userId)
 
-            await comment.save()
+            const updatedcomment =   await comment.save()
 
-            res.json('unlike comment')
+            const postdata = await Post.findOne({comments:updatedcomment.commentid},{user:1}).populate('user','followers')
+              
+            
+            res.json({
+  
+                msg:'like comment',
+                userinfo:postdata,
+                recentcomment:updatedcomment,
+                replyid:req.params.replyid
+            })
 
         }
 
