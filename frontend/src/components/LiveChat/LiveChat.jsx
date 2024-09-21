@@ -21,11 +21,12 @@ const LiveChat = ({ friend,
     const [messages, setMessages] = useState([]);
     const [showPicker, setShowPicker] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
-    const [crawlerfriend, setCrawler] = useState('')
+    const [crawlerfriend, setCrawler] = useState(false)
     const fileInputRef = useRef(null);
     const chatContainerRef = useRef(null); // Reference for the chat container
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
     const liveChatRef = useRef(null);
+    console.log(crawlerfriend)
     // Emoji handler
     const onEmojiClick = (event, emojiObject) => {
         setMessage((prevInput) => prevInput + event.emoji);
@@ -150,8 +151,8 @@ const LiveChat = ({ friend,
                     senderId: userlogin,
                     receiverId: friend.userid,
                     content: message,
-                    isreviewed: crawlerfriend === userlogin ||
-                     crawlerfriend === 'chat' ? true : false,
+                    isreviewed: crawlerfriend === userlogin || 
+                    crawlerfriend === 'chat' ? true : false,
                     files: files,
                 });
 
