@@ -6,7 +6,7 @@ const Followersnotification = ({usernotifications}) => {
 
   return (
     <div className='left-sidebar z-10 m-5 notification border-gray-300 wrapper w-80 min-h-9 bg-slate-100 rounded overflow-y-auto max-h-72'>
-      {usernotifications.length>0 && usernotifications.map((userdet, index) => (
+      {usernotifications.length>0 ? usernotifications.map((userdet, index) => (
         <ul className='m-3 border-b border-gray-300' key={index}>
           <div 
           onClick={(e)=>handleMessagenotif(userdet,e)}
@@ -16,7 +16,8 @@ const Followersnotification = ({usernotifications}) => {
             <span className="text-black mt-1.5 text-[8px]">{format(userdet.createdAt)}</span>
           </div>
         </ul>
-      ))}
+      )) :<p className="text-black w-80 h-10 text-center">No notification yet</p>
+    }
 
    
     </div>
