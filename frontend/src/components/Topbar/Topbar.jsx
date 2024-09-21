@@ -204,7 +204,7 @@ return ()=>{
             onClick={() => handleMessagenotif(userInfo._id)}>
             <FaComment className="text-sm" />
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
-              {messages.filter((view) => view.isreviewed === false).length}
+              {messages.length >0 && messages.filter((view) => view.isreviewed === false).length}
             </span>
             {togglenotific && (
               <div className="absolute z-50 cursor-pointer -left-40 mt-2.5"
