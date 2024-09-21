@@ -388,7 +388,10 @@ const Feed = ({
       );
     }; 
 
-    const handlereplytoreplyLike = ({ postid, recentcomment,replyid }) => {
+    const handlereplytoreplyLike = ({ postid, recentcomment, replyid }) => {
+      console.log(replyid);
+      console.log(recentcomment);
+    
       setPostdata((prevState) =>
         prevState.map((post) =>
           post._id === postid // Check for the correct post
@@ -399,20 +402,17 @@ const Feed = ({
                     ? {
                         ...comment,
                         replies: comment.replies.map((reply) =>
-                  
                           reply._id === replyid // Check for the correct reply
                             ? {
                                 ...reply,
-                                replies:reply.replies.map((replied)=>
-                                
-                                  replied._id = recentcomment._id ?
-                                  {
-                                    ...replied,
-                                    likes:[...recentcomment.likes]
-                                  }
-                                
-                                  :replied
-                                )
+                                replies: reply.replies.map((replied) =>
+                                  replied._id === recentcomment._id // Correct comparison
+                                    ? {
+                                        ...replied,
+                                        likes: [...recentcomment.likes],
+                                      }
+                                    : replied
+                                ),
                               }
                             : reply
                         ),
@@ -423,7 +423,8 @@ const Feed = ({
             : post
         )
       );
-    }; 
+    };
+    
 
 //last child
 

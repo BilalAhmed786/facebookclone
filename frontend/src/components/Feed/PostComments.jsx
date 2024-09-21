@@ -94,7 +94,7 @@ const PostComment = ({
     if (dropdownRefs.current && !dropdownRefs.current.contains(event.target)) {
 
       setIsDropdownOpen(false);
-      setIsDropdowncommentOpen(false);
+      
       setReplyformvisible(false);
     }
   };
@@ -359,7 +359,7 @@ return () => {
                       className='flex gap-2 text-xs'>
                       <p className="font-bold">{reply.user.name}</p>
                         <span>{format(reply.createdAt)}</span>
-                        {comment.replies.length > 0 &&
+                        {reply.replies.length > 0 &&
                     <button onClick={() => toggleChildcomments(reply._id)}
                       className='ml-9'>{childcommentsVisible[reply._id] ?
                         "Hide all comments" : `View all ${calculateCommentCount(reply.replies)} comments`}
