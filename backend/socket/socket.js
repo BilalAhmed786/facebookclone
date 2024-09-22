@@ -70,7 +70,7 @@ function initializeSocket(server) {
 
         //track login user currently chat with which friend
         socket.on('friendinfo', (id) => {
-
+         console.log(id)
             socket.broadcast.emit('friendinfo', id);
 
         });

@@ -63,7 +63,7 @@ try{
         return  res.json('update succesfully')
 
 }catch(error){
-    consoel.log(error)
+    console.log(error)
 }
 
 

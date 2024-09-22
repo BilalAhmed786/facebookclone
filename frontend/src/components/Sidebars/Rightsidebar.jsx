@@ -14,21 +14,42 @@ const RightSidebar = ({ socket,
 }) => {
 
   const [chatuser, setChatUser] = useState(false);
-  
- 
-const handleLivechat =(friend)=>{
+  const [crawlerfriend, setCrawler] = useState('')
 
-  handleUpdatenotific(friend._id)
-  setChatUser({
-    username: friend.name,
-    userid: friend._id,
-    userprofile: friend.profilepicture,
-  })
 
-  setMinimized(false)
-  
- 
-}
+  const handleLivechat = (friend) => {
+
+    handleUpdatenotific(friend._id)
+    setChatUser({
+      username: friend.name,
+      userid: friend._id,
+      userprofile: friend.profilepicture,
+    })
+
+    setMinimized(false)
+
+
+  }
+
+
+  useEffect(() => {
+    socket.connect()
+
+    const handleUserInfo = (data) => {
+      console.log('Received chat user info:', data);
+      setCrawler(data)
+    };
+
+    // Add the event listener
+    socket.on('friendinfo', handleUserInfo);
+
+    // Cleanup function to remove the event listener
+    return () => {
+      socket.off('friendinfo', handleUserInfo);
+    };
+
+  }, [])
+
 
 
 
@@ -49,13 +70,13 @@ const handleLivechat =(friend)=>{
       });
     });
 
- 
-    
+
+
 
     // Cleanup function to remove listeners
     return () => {
       socket.off('statusUpdate');
-     
+
     };
   }, [socket]);
 
@@ -91,7 +112,7 @@ const handleLivechat =(friend)=>{
             ) : (
               <span className="w-2 h-2 -ml-2 rounded-full inline-block"></span>
             )}
-            <img src={friend.profilepicture ?`http://localhost:4000/uploads/${friend.profilepicture}`:Profilephoto} alt={friend.name} className="w-8 h-8 rounded-full" />
+            <img src={friend.profilepicture ? `http://localhost:4000/uploads/${friend.profilepicture}` : Profilephoto} alt={friend.name} className="w-8 h-8 rounded-full" />
             <span>{friend.name}</span>
           </div>
         ))}
@@ -105,6 +126,8 @@ const handleLivechat =(friend)=>{
           setMinimized={setMinimized}
           minimized={minimized}
           handleUpdatenotific={handleUpdatenotific}
+          crawlerfriend={crawlerfriend}
+
         />
       )}
     </div>

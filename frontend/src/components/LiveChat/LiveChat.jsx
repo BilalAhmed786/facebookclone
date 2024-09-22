@@ -14,14 +14,14 @@ const LiveChat = ({ friend,
     socket,
     setMinimized,
     minimized,
-    handleUpdatenotific
+    handleUpdatenotific,
+    crawlerfriend
 }) => {
 
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const [showPicker, setShowPicker] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
-    const [crawlerfriend, setCrawler] = useState(false)
     const fileInputRef = useRef(null);
     const chatContainerRef = useRef(null); // Reference for the chat container
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
@@ -73,21 +73,15 @@ const LiveChat = ({ friend,
     useEffect(() => {
 
         // Emit the 'chatuserinfo' event to the server with the friend's user ID
-        socket.emit('friendinfo', minimized === true ? 1 : friend.userid);
+        socket.emit('friendinfo',
+                
+            minimized === true ? 1 : friend.userid,
+            
+
+        );
 
         // Define the event listener function
-        const handleUserInfo = (data) => {
-            console.log('Received chat user info:', data);
-            setCrawler(data)
-        };
-
-        // Add the event listener
-        socket.on('friendinfo', handleUserInfo);
-
-        // Cleanup function to remove the event listener
-        return () => {
-            socket.off('friendinfo', handleUserInfo);
-        };
+       
     }, [socket, friend.userid]); // Added dependencies to ensure correct behavior
 
     useEffect(() => {
@@ -172,28 +166,6 @@ const LiveChat = ({ friend,
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
     }, [messages]);
-
-
-    // Detect clicks outside of the LiveChat component
-    useEffect(() => {
-
-        const handleClickOutside = (event) => {
-            socket.emit('friendinfo', 1)
-            // Check if click is outside the LiveChat component
-            if (liveChatRef.current && !liveChatRef.current.contains(event.target)) {
-                Chatuser(null); // Close the chat by setting chatuser to null
-            }
-        };
-
-
-        document.addEventListener('mousedown', handleClickOutside);
-
-        // Cleanup event listener on component unmount
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [Chatuser]);
-
 
 
     const filteredMessages = messages.length > 0 && messages.filter(

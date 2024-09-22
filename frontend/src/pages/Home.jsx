@@ -54,7 +54,6 @@ const Home = () => {
 useEffect(()=>{
 socket.connect()
 
-socket.emit('friendinfo',false)
 
 return ()=>{
  
