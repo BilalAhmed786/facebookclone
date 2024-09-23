@@ -13,11 +13,12 @@ const Home = () => {
 
   
   const [userlogin, setUserLogin] = useState('');
+  const [chatuser, setChatUser] = useState(false);
   const [followersUser, setFollowersUser] = useState({});
   const [userInfo, setUserInfo] = useState({});
   const [chatnotificat, statelivechatnotific] = useState('')
   const [minimized, setMinimized] = useState(false);
-  const [followernotificat, statefollowernotific] = useState('')
+  // const [followernotificat, statefollowernotific] = useState('')
   const [specificnotific,setSpecificnotific] =useState('')
   const [messages, setMessages] = useState([]);
   const userInfoRef = useRef();
@@ -144,7 +145,7 @@ useEffect(() => {
   }
   messagesall()
 
-}, [chatnotificat,followernotificat,specificnotific])
+}, [chatnotificat,specificnotific])
 
 
 
@@ -175,6 +176,10 @@ useEffect(() => {
      messages={messages}
      userInfo={userInfo}
      statelivechatnotific={statelivechatnotific}
+     setChatUser={setChatUser}
+     chatuser={chatuser}
+     minimized={minimized}
+     setMinimized={setMinimized}
     
 
     
@@ -192,6 +197,8 @@ useEffect(() => {
         setMinimized={setMinimized}
         minimized={minimized}
         handleUpdatenotific={handleUpdatenotific}
+        setChatUser={setChatUser}
+        chatuser={chatuser}
         />
       </div>
     </div>

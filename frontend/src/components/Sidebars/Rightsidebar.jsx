@@ -10,10 +10,12 @@ const RightSidebar = ({ socket,
   userlogin,
   setMinimized,
   minimized,
-  handleUpdatenotific
+  handleUpdatenotific,
+  setChatUser,
+  chatuser
 }) => {
 
-  const [chatuser, setChatUser] = useState(false);
+  
   const [crawlerfriend, setCrawler] = useState('')
 
 

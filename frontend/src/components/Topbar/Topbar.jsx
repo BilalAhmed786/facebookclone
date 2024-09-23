@@ -7,7 +7,16 @@ import Followersnotification from '../Notification/Followersnotification';
 import axios from 'axios';
 
 
-const Topbar = ({ socket,messages,userInfo,statelivechatnotific}) => {
+const Topbar = ({
+   socket,
+   messages,
+   userInfo,
+   statelivechatnotific,
+   setChatUser,
+   chatuser,
+   minimized,
+   setMinimized
+  }) => {
   
   
   const notificationRef = useRef();
@@ -228,6 +237,10 @@ return ()=>{
                   notification={messages}
                   socket={socket}
                   statetogglenotific={statetogglenotific}
+                  setChatUser={setChatUser}
+                  chatuser={chatuser}
+                  minimized={minimized}
+                  setMinimized={setMinimized}
 
                 />
               </div>
