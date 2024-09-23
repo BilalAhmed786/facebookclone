@@ -146,7 +146,9 @@ const LiveChat = ({ friend,
                     receiverId: friend.userid,
                     content: message,
                     isreviewed: crawlerfriend === userlogin || 
-                    crawlerfriend === 'chat' ? true : false,
+                    crawlerfriend === 'chat' || 
+                    crawlerfriend=== 'nochat' ||
+                    crawlerfriend === 'nochat' && minimized === false ? true : false,
                     files: files,
                 });
 
