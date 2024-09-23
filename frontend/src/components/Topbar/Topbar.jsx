@@ -19,6 +19,21 @@ const Topbar = ({ socket,messages,userInfo,statelivechatnotific}) => {
   const [followernotificat, statefollowernotific] = useState('')
   const navigate = useNavigate();
 
+
+useEffect(()=>{
+  socket.connect()
+  
+  socket.on('chatnotification',(data)=>{
+    
+    console.log(data)
+
+  })
+
+  return ()=>{
+    socket.off('chatnotification')
+  }
+},[socket])
+
   
   //update chate messages notifications 
   const handleMessagenotif = async (id) => {
@@ -95,7 +110,7 @@ const Topbar = ({ socket,messages,userInfo,statelivechatnotific}) => {
 useEffect(()=>{
 
 const followeduser = (data)=>{
-console.log(data)
+
 
   stateNotifications((prevState)=>[data,...prevState])
 
@@ -128,7 +143,7 @@ return ()=>{
 
       } catch (error) {
 
-        consoel.log(error)
+        console.log(error)
       }
     }
 

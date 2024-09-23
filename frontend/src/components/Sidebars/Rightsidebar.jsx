@@ -19,7 +19,7 @@ const RightSidebar = ({ socket,
 
   const handleLivechat = (friend) => {
 
-    handleUpdatenotific(friend._id)
+  handleUpdatenotific(friend._id)
     setChatUser({
       username: friend.name,
       userid: friend._id,
@@ -38,6 +38,7 @@ const RightSidebar = ({ socket,
     const handleUserInfo = (data) => {
       console.log('Received chat user info:', data);
       setCrawler(data)
+    
     };
 
     // Add the event listener

@@ -1,44 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React  from 'react';
 import { format } from 'timeago.js';
-import LiveChat from '../LiveChat/LiveChat';
-import axios from 'axios';
+
 
 const Commentnotification = ({ notification, socket }) => {
-  const [chatuser, setChatUser] = useState('');
-  const [userlogin, setUserLogin] = useState('');
-  const [minimized, setMinimized] = useState(false);
 
-  const handleMessagenotif = (userdet, e) => {
-    e.preventDefault();
-
-    setChatUser({
-      username: userdet.sender.name,
-      userid: userdet.sender._id,
-      userprofile: userdet.sender.profilepicture,
-    });
-  };
-
-  // Fetch the online user on component mount
-  useEffect(() => {
-    const fetchOnlineUser = async () => {
-      try {
-        const response = await axios.get('/api/users/onlineuser');
-        setUserLogin(response.data.loginuser);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchOnlineUser();
-  }, []);
-
-  return (
+  
+return (
     <div className="left-sidebar z-10 m-5 notification border-gray-300 wrapper w-80 min-h-9 bg-slate-100 rounded overflow-y-auto max-h-72">
       {notification.length > 0 ? (
         notification.map((userdet, index) => (
           <ul className="m-3 border-b border-gray-300" key={index}>
             <div
-              onClick={(e) => handleMessagenotif(userdet, e)}
               className="flex items-center justify-start"
             >
               <img
@@ -55,16 +27,7 @@ const Commentnotification = ({ notification, socket }) => {
         <p className="text-black w-80 h-10 text-center">No message yet</p>
       )}
 
-      {chatuser && (
-        <LiveChat
-          friend={chatuser}
-          Chatuser={setChatUser}
-          userlogin={userlogin}
-          socket={socket}
-          setMinimized={setMinimized}
-          minimized={minimized}
-        />
-      )}
+   
     </div>
   );
 };

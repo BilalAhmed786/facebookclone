@@ -26,7 +26,7 @@ const LiveChat = ({ friend,
     const chatContainerRef = useRef(null); // Reference for the chat container
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
     const liveChatRef = useRef(null);
-    console.log(crawlerfriend)
+    
     // Emoji handler
     const onEmojiClick = (event, emojiObject) => {
         setMessage((prevInput) => prevInput + event.emoji);
