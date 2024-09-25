@@ -4,7 +4,6 @@ require('./database/db')
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const authrize = require('./middleware/verifyuser')
-const expiredtoken = require('./middleware/tracttokenexpire')
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const commentRoutes = require('./routes/comments');
@@ -24,7 +23,6 @@ app.use(cookieParser());
 app.use(express.json()); 
 app.use(express.urlencoded({extended:true}))   
 app.use(express.static(path.join(__dirname,'public')))
-app.use(expiredtoken)
 app.use('/api/auth', authRoutes);
 app.use('/api/posts',authrize, postRoutes);
 app.use('/api/comments',authrize,commentRoutes);

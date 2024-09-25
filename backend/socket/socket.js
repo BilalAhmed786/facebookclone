@@ -18,10 +18,11 @@ function initializeSocket(server) {
 
         socket.on('userid', async (userId) => {
 
-
+            socket.userId = userId;  //instead of socketid we use user id for stability
+            
             socket.join(userId);//every loggedin user connect to socket
 
-            await userLogedInn(socket.id, userId); // login user status online(1)
+            await userLogedInn(userId); // login user status online(1)
 
             io.emit('statusUpdate', { userId, status: 1 }); //emit to all loggedin user logedin userstatus(1)
 
@@ -425,8 +426,9 @@ socket.on('replytolastchild', (data) => {
 })   
 
         socket.on('disconnect', async () => {
-            console.log(`Client disconnected: ${socket.id}`);
-            const user = await userLoggedout(socket.id);
+            console.log(socket.userId)
+            // console.log(`Client disconnected: ${socket.id}`);
+            const user = await userLoggedout(socket.userId);
             if (user) {
                 io.emit('statusUpdate', { userId: user._id, status: 0 });
             }

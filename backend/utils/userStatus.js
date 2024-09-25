@@ -1,6 +1,6 @@
 const User = require('../models/User')
 
-const userLogedInn = async (socketid, userid) => {
+const userLogedInn = async (userid) => {
 
     if (!userid) {
         console.error('User ID is undefined. Cannot log in user.');
@@ -20,8 +20,7 @@ const userLogedInn = async (socketid, userid) => {
 
         // Update user's status and socket ID
         user.status = 1;
-        user.socketid = socketid;
-
+       
         // Save the updated user
         const userstatus = await user.save();
 
@@ -37,10 +36,10 @@ const userLogedInn = async (socketid, userid) => {
 };
 
 
-const userLoggedout = async (socketid) => {
+const userLoggedout = async (userid) => {
     try {
         // Find a single user document by socketid
-        const user = await User.findOne({ socketid });
+        const user = await User.findOne({_id: userid });
 
         // Check if the user was found
         if (!user) {
