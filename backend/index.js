@@ -32,8 +32,6 @@ app.use('/api/livechat',authrize, chatmessages);
 
 
 
-const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+server.listen(process.env.PORT || 4001, () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
 });
-
