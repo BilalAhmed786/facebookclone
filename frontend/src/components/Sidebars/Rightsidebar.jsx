@@ -102,7 +102,9 @@ const RightSidebar = ({ socket,
         <h3 className="font-bold">Ad</h3>
         <img src={Add} alt="Ad" className="rounded" />
       </div>
-      <div>
+
+      {sortedFollowers.length > 0 &&
+      <div className='p-5'>
         <h3 className="font-bold mb-5">Online Friends</h3>
         {sortedFollowers.map((friend) => (
           <div
@@ -120,6 +122,8 @@ const RightSidebar = ({ socket,
           </div>
         ))}
       </div>
+      }
+      
       {chatuser && (
         <LiveChat
           friend={chatuser}
