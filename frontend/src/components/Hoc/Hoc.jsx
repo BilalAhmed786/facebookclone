@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import io from 'socket.io-client';
 const socket = io('http://localhost:4000',{autoConnect:false});
 const Hoc = (Common) => {
-  const Childfunc = () => {
+  const Childfunc = (props) => {
     
     //for post edit 
     const [editVisible, seteditVisible] = useState(false);
@@ -42,6 +42,7 @@ const Hoc = (Common) => {
 
     //for post edit and delte
     const handleEdit = (postId) => {
+    
       setEditid(postId);
       seteditVisible(true);
     };
@@ -232,8 +233,6 @@ const Hoc = (Common) => {
     };
 
     const handlecommentreplylike = async (replyid, commentId) => {
-
-      alert('nice')
       try {
         const result = await axios.put(`/api/comments/replylike/${commentId}`, { replyid });
         toast.success(result.data.msg);
@@ -375,10 +374,11 @@ const Hoc = (Common) => {
         }
       };
       fetchUserInfo();
-    }, []);
+    }, [pagerender]);
 
 
     return <Common
+       {...props}
       handlesharePost={handlesharePost}
       handleEdit={handleEdit}
       handleDelete={handleDelete}
@@ -411,7 +411,7 @@ const Hoc = (Common) => {
       fileInputRef={fileInputRef}
       selectedFiles={selectedFiles}
       socket={socket}
-      
+      userInfo={userInfo}
 
 
     />

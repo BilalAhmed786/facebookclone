@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaEdit } from 'react-icons/fa';
-import ProfileEdit from './ProfileEdit';
+import ProfileEdit from '../profile/ProfileEdit';
 import Profilephoto from '../../images/profilepic.webp'
 
 

@@ -15,7 +15,7 @@ body {
 
 /* Custom scrollbar for WebKit-based browsers */
 .left-sidebar::-webkit-scrollbar {
-    width: 5px; /* Width of the scrollbar */
+    width: 2px; /* Width of the scrollbar */
   }
   
   .left-sidebar::-webkit-scrollbar-thumb {
@@ -29,5 +29,5 @@ body {
   
   .left-sidebar::-webkit-scrollbar-track {
     background: #f1f1f1; /* Background of the scrollbar track */
-    border-radius: 10px;
+    border-radius: 5px;
   }

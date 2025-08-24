@@ -8,19 +8,19 @@ import axios from 'axios';
 
 
 const Topbar = ({
-   socket,
-   messages,
-   userInfo,
-   statelivechatnotific,
-   setChatUser,
-   chatuser,
-   minimized,
-   setMinimized
-  }) => {
-  
-  
+  socket,
+  messages,
+  userInfo,
+  statelivechatnotific,
+  setChatUser,
+  chatuser,
+  minimized,
+  setMinimized
+}) => {
+
+
   const notificationRef = useRef();
-  
+
   const [togglemenu, stateTogglemenu] = useState(false);
   const [togglenotific, statetogglenotific] = useState(false);
   const [togglefollowers, statetogglefollowers] = useState(false);
@@ -29,25 +29,12 @@ const Topbar = ({
   const navigate = useNavigate();
 
 
-useEffect(()=>{
-  socket.connect()
-  
-  socket.on('chatnotification',(data)=>{
-    
-    console.log(data)
 
-  })
 
-  return ()=>{
-    socket.off('chatnotification')
-  }
-},[socket])
-
-  
   //update chate messages notifications 
   const handleMessagenotif = async (id) => {
 
-    socket.emit('friendinfo','chat')
+    socket.emit('friendinfo', 'chat')
 
     statetogglenotific(!togglenotific);
 
@@ -73,22 +60,22 @@ useEffect(()=>{
 
 
   //handle followers notification set 
-  const handleFollowersnotif = async() => {
-   
-    socket.emit('followernotific','follower')
-    
-    
+  const handleFollowersnotif = async () => {
+
+    socket.emit('followernotific', 'follower')
+
+
     statetogglefollowers(!togglefollowers);
-    
-    try{
 
-        const result = await axios.put('/api/notification/updatenotifications')
+    try {
 
-          console.log(result.data)
-           statefollowernotific(Date.now())
-           
-        
-    }catch(error){
+      const result = await axios.put('/api/notification/updatenotifications')
+
+   
+      statefollowernotific(Date.now())
+
+
+    } catch (error) {
 
       console.log(error)
     }
@@ -98,9 +85,6 @@ useEffect(()=>{
   }
 
 
-  const toggleMenu = () => {
-    stateTogglemenu(!togglemenu);
-  };
 
   const handleLogout = async () => {
     try {
@@ -113,27 +97,27 @@ useEffect(()=>{
     }
   };
 
-//usernotification
+  //usernotification
 
 
-useEffect(()=>{
+  useEffect(() => {
 
-const followeduser = (data)=>{
+    const followeduser = (data) => {
 
 
-  stateNotifications((prevState)=>[data,...prevState])
+      stateNotifications((prevState) => [data, ...prevState])
 
-}
+    }
 
-socket.on('followuser',followeduser)
+    socket.on('followuser', followeduser)
 
-return ()=>{
- 
-  socket.off('followuser',followeduser)
+    return () => {
 
-}
+      socket.off('followuser', followeduser)
 
-},[usernotifications])
+    }
+
+  }, [usernotifications])
 
 
 
@@ -146,7 +130,7 @@ return ()=>{
 
         const result = await axios.get('/api/notification/followers')
 
-       
+
         stateNotifications(result.data)
         // statesinglefollowuser(result.data.followeduserinfo)
 
@@ -167,12 +151,12 @@ return ()=>{
     const handleClickOutside = (e) => {
       if (notificationRef.current && !notificationRef.current.contains(e.target)) {
 
-        socket.emit('friendinfo','nochat')
-        socket.emit('followernotific','notopen')
+        socket?.emit('friendinfo', 'nochat')
+        socket?.emit('followernotific', 'notopen')
 
         statetogglenotific(false);
         statetogglefollowers(false);
-        stateTogglemenu(false);
+       
       }
     };
 
@@ -180,13 +164,13 @@ return ()=>{
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      
+
     };
   }, []);
 
 
   return (
-    <div className="bg-blue-600 text-white flex items-center justify-between p-3">
+    <div className="bg-blue-600 text-white flex justify-between py-3 px-2">
       {/* Logo Section */}
       <div className="flex items-center">
         <div className="text-2xl font-bold">
@@ -196,7 +180,7 @@ return ()=>{
 
       {/* Search Bar */}
       <div className="flex flex-grow justify-center">
-        <div className="relative w-full max-w-md">
+        <div className="relative w-full hidden lg:block md:block max-w-md">
           <input
             type="text"
             placeholder="Search for friend, post or video"
@@ -208,13 +192,13 @@ return ()=>{
 
       {/* Navigation and Icons */}
       <div className="flex items-center space-x-5">
-        <div className="flex items-center space-x-5 mr-14">
+        <div className="flex items-center">
           {/* Icons */}
-          <div className="relative cursor-pointer"
+          <div className="relative cursor-pointer m-4"
             onClick={() => handleFollowersnotif()}>
             <FaUser className="text-sm" />
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
-              {usernotifications.length>0 && usernotifications.filter((notific)=>notific.isread === false).length}</span>
+              {usernotifications.length > 0 && usernotifications.filter((notific) => notific.isread === false).length}</span>
             {togglefollowers && (
               <div className="absolute z-50 cursor-pointer -left-40 mt-2.5"
                 ref={notificationRef} onClick={(e) => e.stopPropagation()}>
@@ -228,7 +212,7 @@ return ()=>{
             onClick={() => handleMessagenotif(userInfo._id)}>
             <FaComment className="text-sm" />
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
-              {messages.length >0 && messages.filter((view) => view.isreviewed === false).length}
+              {messages.length > 0 && messages.filter((view) => view.isreviewed === false).length}
             </span>
             {togglenotific && (
               <div className="absolute z-50 cursor-pointer -left-40 mt-2.5"
@@ -248,10 +232,14 @@ return ()=>{
           </div>
 
           {/* Profile Picture */}
-          <div onClick={toggleMenu}>
+          <div className='relative'
+            onClick={() => stateTogglemenu((prev => !prev))}
+
+
+          >
             {togglemenu &&
               <div
-                className='absolute z-50 bg-blue-600 mt-12 ml-2 p-5'
+                className='absolute right-3 top-16 z-50 bg-blue-600 p-5'
                 ref={notificationRef}
                 onClick={(e) => e.stopPropagation()}
               >

@@ -4,7 +4,7 @@ import { FaRss, FaCommentDots, FaVideo, FaUsers, FaBookmark, FaQuestionCircle, F
 
 const LeftSidebar = () => {
   return (
-    <div className="left-sidebar w-1/4 bg-white p-4 h-screen overflow-y-auto">
+    <div>
       <h2 className="text-lg font-bold mb-4">Saif Tech</h2>
       <ul className="space-y-4">
         <li className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 p-2 rounded">

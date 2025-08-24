@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import Textbox from './Textbox';
-import PostComment from './PostComments';
+import Textbox from '../postpublish/Textbox';
+import PostComment from '../postcomment/PostComments';
 import Profilephoto from '../../images/profilepic.webp'
 import Hoc from '../Hoc/Hoc';
 import { FaCamera } from 'react-icons/fa';
@@ -42,13 +42,13 @@ const ProfileFeed = ({
   fileInputRef,
   selectedFiles,
   profilePic,
+  loginUser,
   setRender
 }) => {
   const [postdata, setPostdata] = useState([]);
-  const [userinfo, setUser] = useState('');
-  const [currentuser, setCurrentuser] = useState({});
+   const [userinfo, setUser] = useState('');
   const { id } = useParams();
-   
+ 
 
   // Retrieve data for user posts
   useEffect(() => {
@@ -56,7 +56,7 @@ const ProfileFeed = ({
       try {
         const result = await axios.get(`/api/posts/timeline/${id}`);
         setPostdata(result.data.allPosts); // all data 
-        setUser(result.data.Userid); // current userid
+        setUser(result.data.Userid); // post user details
       } catch (error) {
         console.log(error);
       } 
@@ -68,21 +68,7 @@ const ProfileFeed = ({
 
   }, [editVisible, profilePic, pagerender, postSubmit]);
 
-  // Get current user data
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const userdata = await axios.get(`/api/users/singleuser/${userinfo}`);
-        setCurrentuser(userdata.data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
 
-    if (userinfo) {
-      fetchCurrentUser();
-    }
-  }, [userinfo, profilePic]);
 
 
 
@@ -90,11 +76,11 @@ const ProfileFeed = ({
     <div className="w-full flex-[2] bg-white p-4 h-screen">
       {/* Share Post Box */}
       {
-        userinfo === id &&
+        loginUser === id &&
         <div className="relative">
           <div className="mb-4 p-4 border rounded shadow-sm">
             <div className="flex items-center space-x-2">
-              <img src={currentuser.finduser?.profilepicture? `http://localhost:4000/uploads/${currentuser.finduser?.profilepicture}`:Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
+              <img src={profilePic? `http://localhost:4000/uploads/${profilePic}`:Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
               <input
                 type="text"
                 onClick={() => setIsVisible(true)}

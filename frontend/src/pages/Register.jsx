@@ -91,6 +91,11 @@ const Register = () => {
               Sign Up
             </button>
           </div>
+          <div>
+
+            Already have account ? <a className='text-blue-600' href='/'>Login</a>
+
+          </div>
         </form>
       </div>  
     </div>

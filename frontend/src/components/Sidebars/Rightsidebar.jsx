@@ -1,25 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import Profilephoto from '../../images/profilepic.webp'
 import Add from '../../images/jack-spade.gif'
-import LiveChat from '../LiveChat/LiveChat';
+
 
 
 const RightSidebar = ({ socket,
   setFollowersUser,
   followersUser,
-  userlogin,
   setMinimized,
-  minimized,
   handleUpdatenotific,
   setChatUser,
-  chatuser
+ 
 }) => {
 
   
-  const [crawlerfriend, setCrawler] = useState('')
-
-
-  const handleLivechat = (friend) => {
+    const handleLivechat = (friend) => {
 
   handleUpdatenotific(friend._id)
     setChatUser({
@@ -38,7 +33,7 @@ const RightSidebar = ({ socket,
     socket.connect()
 
     const handleUserInfo = (data) => {
-      console.log('Received chat user info:', data);
+    
       setCrawler(data)
     
     };
@@ -93,7 +88,7 @@ const RightSidebar = ({ socket,
     : [];
 
   return (
-    <div className="flex-[1] bg-gray-100 p-4 h-screen">
+    <div>
       <div className="mb-4">
         <h3 className="font-bold">Birthdays</h3>
         <p>Pola Foster and 3 other friends have a birthday today.</p>
@@ -124,19 +119,7 @@ const RightSidebar = ({ socket,
       </div>
       }
       
-      {chatuser && (
-        <LiveChat
-          friend={chatuser}
-          Chatuser={setChatUser}
-          userlogin={userlogin}
-          socket={socket}
-          setMinimized={setMinimized}
-          minimized={minimized}
-          handleUpdatenotific={handleUpdatenotific}
-          crawlerfriend={crawlerfriend}
-
-        />
-      )}
+   
     </div>
   );
 };

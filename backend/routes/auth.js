@@ -42,9 +42,9 @@ router.post('/register', async (req, res) => {
         const token = jwt.sign(payload, process.env.TOKEN_SEC, { expiresIn: '1h' });
 
         res.cookie('auth_token', token, {
-            httpOnly: true, // Ensures the cookie is sent only over HTTP(S), not accessible via JavaScript
-            secure: process.env.NODE_ENV === 'production', // Ensure cookies are sent over HTTPS in production
-            maxAge: 3600000 // Cookie expiration time in milliseconds (1 hour in this case)
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production', 
+            maxAge: 3600000 
         });
 
         return res.json('register successfully')

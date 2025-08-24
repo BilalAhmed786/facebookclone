@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
-
+import FullScreenLoader from '../components/Preloader/Preloader'
 const Protecteduser = ({ Component }) => {
 
-   const navigate = useNavigate()
+const navigate = useNavigate()
     
  const [userdetail,userDetail] =  useState('')
-
- 
-
+ const [loading,setLoading] = useState(true)
 
 useEffect(() => {
 
@@ -30,6 +28,9 @@ useEffect(() => {
                 }
                 
             
+            }finally{
+
+                    setLoading(false)
             }
 
 
@@ -41,6 +42,7 @@ useEffect(() => {
 
     }, [userdetail])
 
+    if(loading) return <FullScreenLoader/>
     return (
         <>
             <Component/>
