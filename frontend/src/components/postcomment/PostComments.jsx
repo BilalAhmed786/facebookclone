@@ -226,10 +226,10 @@ const PostComment = ({
                   <span>{format(comment.createdAt)}</span>
                   {comment.replies.length > 0 &&
                     <button onClick={() => toggleChildcomments(comment._id)}
-                      className='absolute top-7 lg:top-2 md:top-5 right-3 lg:right-1/2 md:right-2'>{childcommentsVisible[comment._id] ?
+                      className='absolute top-7 lg:top-2 md:top-5 right-3 lg:right-1/3 md:right-2'>{childcommentsVisible[comment._id] ?
                         "Hide all comments" : `View all ${calculateCommentCount(comment.replies)} comments`}
                     </button>}
-                  <div className='absolute right-10'>
+                  <div className='absolute right-2'>
                     <button onClick={() => toggleDropdown(comment._id)} className="text-gray-500"><FaEllipsisH /></button>
                   </div>
                   {isDropdownOpen[comment._id] && (
@@ -306,11 +306,11 @@ const PostComment = ({
                       <span>{format(reply.createdAt)}</span>
                       {reply.replies.length > 0 &&
                         <button onClick={() => toggleChildcomments(reply._id)}
-                          className='absolute top-7 lg:top-2 md:top-5 right-3 lg:right-1/2 md:right-2'>{childcommentsVisible[reply._id] ?
+                          className='absolute top-7 lg:top-2 md:top-5 right-3 lg:right-1/3 md:right-2'>{childcommentsVisible[reply._id] ?
                             "Hide all comments" : `View all ${calculateCommentCount(reply.replies)} comments`}
                         </button>}
 
-                      <div className='absolute right-10'>
+                      <div className='absolute right-2'>
                         <button onClick={() => toggleDropdown(reply._id)} className="text-gray-500"><FaEllipsisH /></button>
                       </div>
 
@@ -388,7 +388,7 @@ const PostComment = ({
                       <div className='flex gap-2 text-xs'>
                         <p className="font-bold">{replies.user.name}</p>
                         <span>{format(replies.createdAt)}</span>
-                        <div className='absolute right-10'>
+                        <div className='absolute right-2'>
                           <button onClick={() => toggleDropdown(replies._id)} className="text-gray-500"><FaEllipsisH /></button>
                         </div>
 
