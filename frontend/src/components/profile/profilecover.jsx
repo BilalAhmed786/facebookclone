@@ -156,7 +156,7 @@ const profilecover = (
                 {loginUser === id &&
 
                     <button
-                        className='absolute bg-slate-300 flex bottom-10 right-12 rounded px-5 py-3'
+                        className='absolute bg-slate-300 flex lg:bottom-10 md:bottom-10 bottom-28 right-2 lg:right-12 md:right-12 rounded px-5 py-3'
                         onClick={triggerProfileCoverInput}
 
                     >
