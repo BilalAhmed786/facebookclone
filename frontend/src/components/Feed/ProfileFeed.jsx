@@ -46,9 +46,9 @@ const ProfileFeed = ({
   setRender
 }) => {
   const [postdata, setPostdata] = useState([]);
-   const [userinfo, setUser] = useState('');
+  const [userinfo, setUser] = useState('');
   const { id } = useParams();
- 
+
 
   // Retrieve data for user posts
   useEffect(() => {
@@ -59,7 +59,7 @@ const ProfileFeed = ({
         setUser(result.data.Userid); // post user details
       } catch (error) {
         console.log(error);
-      } 
+      }
 
     };
 
@@ -80,7 +80,7 @@ const ProfileFeed = ({
         <div className="relative">
           <div className="mb-4 p-4 border rounded shadow-sm">
             <div className="flex items-center space-x-2">
-              <img src={profilePic? `http://localhost:4000/uploads/${profilePic}`:Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
+              <img src={profilePic ? `http://localhost:4000/uploads/${profilePic}` : Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
               <input
                 type="text"
                 onClick={() => setIsVisible(true)}
@@ -133,10 +133,23 @@ const ProfileFeed = ({
             </form>
 
           </div>
-          {/* Textbox component for additional UI elements */}
+          {/* component for text and images publish post */}
           {isVisible && <Textbox setIsVisible={setIsVisible} isVisible={isVisible} />}
         </div>
       }
+
+      {/* if no post this message will render */}
+    
+      {postdata.length === 0 &&
+
+        <div className='w-full flex justify-center items-center min-h-40 shadow-md'>
+
+          <p  className='text-xl text-pretty'>No post yet</p>
+
+        </div>
+
+      }
+
       {/* Render Posts Dynamically */}
 
       {postdata.map((post) => (

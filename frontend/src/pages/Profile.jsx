@@ -5,6 +5,7 @@ import Leftsidebar from '../components/Sidebars/Leftsidebar';
 import Profilecover from '../components/profile/profilecover';
 import ProfileFeed from '../components/Feed/ProfileFeed';
 import Profiletopbar from '../components/Topbar/profiletopbar';
+import Togglewall from '../components/button/togglewall';
 import Hoc from '../components/Hoc/Hoc';
 import { useParams } from 'react-router-dom';
 
@@ -17,7 +18,7 @@ const Profile = ({socket,userInfo,setRender}) => {
     const [userinfo, setUserinfo] = useState('')
     const [loginUser, setLoginUser] = useState('')
     const [username, setUserName] = useState('')
-    const [toggleview,settoggleview] = useState(false)
+    const [togglerightsb,settogglerightsb] = useState(false)
     const { id } = useParams();
 
 
@@ -106,18 +107,18 @@ return (
 
                 
                 />
-                    <div className="relative min-h-[100vh] flex overflow-hidden">
+                    <div className="relative min-h-[85vh] flex overflow-hidden">
                        
                        <div className={`left-sidebar flex-[2] lg:relative lg:translate-x-0 overflow-auto
-                            ${toggleview? 'absolute inset-0 translate-x-0':'-translate-x-full'} `}
+                            ${!togglerightsb? 'absolute inset-0 translate-x-0':'-translate-x-full'} `}
 
                        
                        >
                         <ProfileFeed profilePic={profilePic} loginUser={loginUser}  />
                        </div>
                        
-                       <div className={`left-sidebar flex justify-center flex-[1]  lg:relative lg:translate-x-0 overflow-auto
-                       ${!toggleview? 'absolute inset-0 translate-x-0':'-translate-x-full'}`}
+                       <div className={`left-sidebar flex justify-center flex-[1] lg:relative lg:translate-x-0 overflow-auto
+                       ${togglerightsb? 'absolute inset-0 translate-x-0':'-translate-x-full'}`}
                        
                        >
                         <ProfileRightsidebar userinfo={userinfo} loginUser={loginUser} setpagerender={setpagerender} />
@@ -126,6 +127,7 @@ return (
                     </div>
                 </div>
             </div>
+            <Togglewall settogglerightsb={settogglerightsb} togglerightsb={togglerightsb} />
         </>
     );
 };

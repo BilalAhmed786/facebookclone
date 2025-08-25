@@ -135,7 +135,8 @@ const Feed = ({
             </div>
           </form>
         </div>
-        {/* Textbox component for additional UI elements */}
+        {/* post publish text or images*/}
+      
         {isVisible && <Textbox  
           setIsVisible={setIsVisible}
           isVisible={isVisible}
@@ -143,8 +144,20 @@ const Feed = ({
           socket={socket}
         />}
       </div>
-      {/* Render Posts Dynamically */}
+ 
+        {/* if no post render this message */}
 
+      {postdata.length === 0 &&
+      
+      <div className='w-full flex justify-center items-center min-h-40 shadow-md'>
+        
+        <p className='text-xl text-pretty'>No post yet</p>
+
+      </div>
+      
+      }
+
+     {/* Render Posts Dynamically */}
       {postdata.map((post) => (
 
         <PostComment

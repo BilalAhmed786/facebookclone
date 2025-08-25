@@ -4,6 +4,7 @@ import Leftsidebar from '../components/Sidebars/Leftsidebar';
 import Topbar from '../components/Topbar/Topbar';
 import Feed from '../components/Feed/Feed';
 import LiveChat from '../components/LiveChat/LiveChat';
+import Togglewall from '../components/button/togglewall';
 import axios from 'axios';
 import Hoc from '../components/Hoc/Hoc';
 const Home = ({socket,userInfo}) => {
@@ -204,6 +205,7 @@ const Home = ({socket,userInfo}) => {
         />
       )}
 
+      <Togglewall settogglerightsb={settogglerightsb} togglerightsb={togglerightsb} />
 
     </div>
   );

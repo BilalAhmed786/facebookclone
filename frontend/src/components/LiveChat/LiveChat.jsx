@@ -180,8 +180,8 @@ const LiveChat = ({ friend,
 
 
     return (
-        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[350px] border rounded-t-lg bg-white ${minimized ? 'h-12' : 'lg:h-[78%] md:h-[40%]'}`}>
-            <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white">
+        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[350px] max-h-[60%] border rounded-xl bg-white ${minimized ? 'h-12' : 'h-[50%] lg:h-[70%] md:h-[40%]'}`}>
+            <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white rounded-xl">
                 <div className="flex items-center space-x-2">
                     <img
                         src={friend.userprofile? `http://localhost:4000/uploads/${friend.userprofile}`:profilephoto}
@@ -275,7 +275,7 @@ const LiveChat = ({ friend,
                                 ))}
                             </div>
                         </div>
-                        <div className="flex items-center mt-2">
+                        <div className="flex items-center mt-2 mb-2">
                             <BsEmojiSmileFill
                                 className='text-xl text-yellow-500 cursor-pointer mr-2'
                                 onClick={() => setShowPicker(val => !val)}

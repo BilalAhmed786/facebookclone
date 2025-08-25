@@ -72,7 +72,7 @@ const CommentreplytoreplyEdit = ({ commenteditid,replyid,seteditCommentvisible,s
           placeholder='Edit your comment...'
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          className='p-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
+          className='p-2 h-24 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500'
         />
         <input
           type='submit'

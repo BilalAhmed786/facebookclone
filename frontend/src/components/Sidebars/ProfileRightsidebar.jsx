@@ -55,11 +55,11 @@ const ProfileRightSidebar = ({ userinfo, setpagerender,loginUser }) => {
   }, [userinfo]);
 
   return (
-    <div className="p-4 flex-[1] bg-white shadow rounded-lg max-w-sm">
+    <div className="p-4 bg-white w-full rounded-lg">
       {isEditing ? (
         <ProfileEdit onClose={handleCloseClick} userinfo={userinfo} setpagerender={setpagerender} />
       ) : (
-        <>
+        <div className='w-full flex flex-col justify-center items-center'>
           <div className='flex gap-4'>
             <h2 className="text-lg font-bold text-gray-900 mb-4">User Information</h2>
           { loginUser === id &&
@@ -91,7 +91,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender,loginUser }) => {
               </Link>
             ))}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

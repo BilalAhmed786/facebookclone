@@ -233,7 +233,7 @@ const profilecover = (
 
                 {loginUser !== id && (
 
-                    <div className='absolute bg-blue-500 text-white px-6 py-1 top-10 right-24'>
+                    <div className='absolute bg-blue-500 text-white px-6 py-1 top-10 right-4 lg:right-24 md:right-14'>
 
                         <button onClick={handleFollowuser}>{!userinfo.followers?.includes(loginUser) ? '+ Follow' : 'Unfollow'}</button>
                     </div>

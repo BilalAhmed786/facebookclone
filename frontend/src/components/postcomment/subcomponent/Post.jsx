@@ -13,6 +13,7 @@ const Post = ({ post }) => {
     (item) => !item.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/)
   );
 
+
   return (
     <div className="m-5">
       {/* Texts */}
