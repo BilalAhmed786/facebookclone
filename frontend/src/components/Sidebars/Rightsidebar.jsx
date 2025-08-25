@@ -95,7 +95,7 @@ const RightSidebar = ({ socket,
       </div>
       <div className="mb-4">
         <h3 className="font-bold">Ad</h3>
-        <img src={Add} alt="Ad" className="rounded" />
+        <img src={Add} alt="Ad" className="rounded m-auto w-[60%] lg:w-full md:w-[70%]" />
       </div>
 
       {sortedFollowers.length > 0 &&

@@ -180,7 +180,7 @@ const LiveChat = ({ friend,
 
 
     return (
-        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[350px] max-h-[60%] border rounded-xl bg-white ${minimized ? 'h-12' : 'h-[50%] lg:h-[70%] md:h-[40%]'}`}>
+        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[350px] max-h-[72%] border rounded-xl bg-white ${minimized ? 'h-12' : 'h-[50%] lg:h-[72%] md:h-[40%]'}`}>
             <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white rounded-xl">
                 <div className="flex items-center space-x-2">
                     <img
