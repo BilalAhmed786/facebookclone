@@ -180,7 +180,7 @@ const LiveChat = ({ friend,
 
 
     return (
-        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[350px] max-h-[72%] border rounded-xl bg-white ${minimized ? 'h-12' : 'h-[50%] lg:h-[72%] md:h-[40%]'}`}>
+        <div ref={liveChatRef} className={`fixed z-50 bottom-0 right-0 w-[350px] border rounded-xl bg-white ${minimized ? 'h-12' : 'h-[470px]'}`}>
             <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white rounded-xl">
                 <div className="flex items-center space-x-2">
                     <img
@@ -277,7 +277,7 @@ const LiveChat = ({ friend,
                         </div>
                         <div className="flex items-center mt-2 mb-2">
                             <BsEmojiSmileFill
-                                className='text-xl text-yellow-500 cursor-pointer mr-2'
+                                className='text-xl text-yellow-500 cursor-pointer mr-2 h-5'
                                 onClick={() => setShowPicker(val => !val)}
                             />
                             <BsPaperclip
