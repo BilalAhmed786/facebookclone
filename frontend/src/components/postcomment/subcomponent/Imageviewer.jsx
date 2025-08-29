@@ -1,5 +1,6 @@
 import React from "react";
 import { createPortal } from "react-dom";
+import { backendurl } from "../../../baseurls/baseurls";
 
 const ImageViewer = ({ images, onClose }) => {
   return createPortal(
@@ -14,7 +15,7 @@ const ImageViewer = ({ images, onClose }) => {
         {images.map((img, i) => (
           <img
             key={i}
-            src={`http://localhost:4000/uploads/${img}`}
+            src={`${backendurl}/uploads/${img}`}
             alt="viewer"
             className="w-[400px] rounded-md shadow-lg"
           />

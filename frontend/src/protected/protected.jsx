@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import FullScreenLoader from '../components/Preloader/Preloader'
+import { backendurl } from '../baseurls/baseurls'
 const Protecteduser = ({ Component }) => {
 
 const navigate = useNavigate()
@@ -16,7 +17,7 @@ useEffect(() => {
 
             try {
 
-                const user = await axios.get('/api/auth/userinfo')
+                const user = await axios.get(`${backendurl}/api/auth/userinfo`,{withCredentials:true})
 
                 userDetail(user?.data._id)
                

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { toast } from "react-toastify"
 import axios from 'axios';
+import { backendurl } from '../../baseurls/baseurls';
 
 const ReplyForm = ({ commentId, setRender, socket }) => {
   const [replyText, setReplyText] = useState('');
@@ -21,7 +22,7 @@ const ReplyForm = ({ commentId, setRender, socket }) => {
     e.preventDefault();
 
     try {
-      const result = await axios.post(`/api/comments/reply/${commentId}`, { text: replyText });
+      const result = await axios.post(`${backendurl}/api/comments/reply/${commentId}`, { text: replyText },{withCredentials:true});
 
       toast.success(result.data.msg);
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { backendurl } from '../../baseurls/baseurls';
 const ColorPicker = ({ setBgColor }) => {
     const colors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500'];
 
@@ -28,12 +29,12 @@ const PostBox = ({ setIsVisible, isVisible,socket }) => {
 
         try{
             
-           const post = await axios.post('/api/posts',{bgcolor,text})
+           const post = await axios.post(`${backendurl}/api/posts`,{bgcolor,text},{withCredentials:true})
 
             toast.success(post.data.msg)
             
             //post user data emit to all its friend on real-time
-            socket.emit('postdata',post.data.postdata) 
+            socket?.emit('postdata',post.data.postdata) 
            
             
             postMessage('')

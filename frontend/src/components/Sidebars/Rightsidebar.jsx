@@ -1,91 +1,96 @@
 import React, { useEffect, useState } from 'react';
 import Profilephoto from '../../images/profilepic.webp'
 import Add from '../../images/jack-spade.gif'
+import { backendurl } from '../../baseurls/baseurls';
+import Hoc from '../Hoc/Hoc';
 
-
-
-const RightSidebar = ({ socket,
+const RightSidebar = ({ 
+  socket,
   setFollowersUser,
   followersUser,
   setMinimized,
   handleUpdatenotific,
   setChatUser,
- 
+  loginuser,
+  handleupdatechatnotification,
+  statelivechatnotific
 }) => {
 
-  
-    const handleLivechat = (friend) => {
 
-  handleUpdatenotific(friend._id)
+
+
+  const [friends, setFriends] = useState([]);
+
+  const handleLivechat = async(friend) => {
+
+    //socket chatuser track
+
+      socket?.emit('chattracker',{loginuser,chatuser:friend._id})
+
+    
+    
+    await handleUpdatenotific(friend._id); //update follower notification
+    await handleupdatechatnotification(friend._id);//update chat notificaiton
+
     setChatUser({
       username: friend.name,
       userid: friend._id,
       userprofile: friend.profilepicture,
-    })
+      userstatus:friend.status
+    });
+   
+    setMinimized(false);
+    statelivechatnotific(Date.now())
 
-    setMinimized(false)
 
 
-  }
 
+
+  };
+
+  // build initial mutual friends list
+  useEffect(() => {
+    if (!followersUser) return;
+    const followings = followersUser.following || [];
+    const mutuals = followersUser.followers
+      ?.filter(user => followings.includes(user._id))
+      .sort((a, b) => b.status - a.status);
+    setFriends(mutuals || []);
+  }, [followersUser]);
 
   useEffect(() => {
-    socket.connect()
-
-    const handleUserInfo = (data) => {
-    
-      setCrawler(data)
-    
-    };
-
-    // Add the event listener
-    socket.on('friendinfo', handleUserInfo);
-
-    // Cleanup function to remove the event listener
-    return () => {
-      socket.off('friendinfo', handleUserInfo);
-    };
-
-  }, [])
-
-
-
-
-  // Setting up socket listeners and connections
-  useEffect(() => {
-    // Ensure socket is connected only once
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    // Set up socket listener for user status(online-offline) updates
-    socket.on('statusUpdate', (data) => {
+    const handlestatusupdate = (data) => {
       setFollowersUser((prevData) => {
         const updatedFollowers = prevData.followers?.map((user) =>
           user._id === data.userId ? { ...user, status: data.status } : user
         );
         return { ...prevData, followers: updatedFollowers };
       });
-    });
-
-
-
-
-    // Cleanup function to remove listeners
-    return () => {
-      socket.off('statusUpdate');
-
     };
-  }, [socket]);
+
+   const handlefollowuser = (data) => {
+  
+     setFollowersUser(prev => ({
+    ...prev,
+    followers: prev.followers.some(u => u._id === data.sender._id)
+      ? prev.followers.filter(u => u._id !== data.sender._id)
+      : [...prev.followers, data.sender]
+  }));
+
+};
 
 
+ 
 
+    // register listeners
+     socket?.on('statusUpdate', handlestatusupdate);
+     socket?.on('followuser', handlefollowuser);
 
-
-  // Sort followers to place online users first
-  const sortedFollowers = followersUser.followers
-    ? followersUser.followers.sort((a, b) => b.status - a.status)
-    : [];
+    return () => {
+      socket?.off('statusUpdate', handlestatusupdate);
+      socket?.off('followuser', handlefollowuser);
+    };
+  }, [socket, setFollowersUser]);
 
   return (
     <div>
@@ -98,30 +103,32 @@ const RightSidebar = ({ socket,
         <img src={Add} alt="Ad" className="rounded m-auto w-[60%] lg:w-full md:w-[70%]" />
       </div>
 
-      {sortedFollowers.length > 0 &&
-      <div className='p-5'>
-        <h3 className="font-bold mb-5">Online Friends</h3>
-        {sortedFollowers.map((friend) => (
-          <div
-            onClick={() => handleLivechat(friend)}
-            key={friend._id}
-            className="relative flex items-center space-x-2 mb-2 cursor-pointer"
-          >
-            {friend.status === 1 ? (
-              <span className="absolute -mt-6 ml-2 w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
-            ) : (
-              <span className="w-2 h-2 -ml-2 rounded-full inline-block"></span>
-            )}
-            <img src={friend.profilepicture ? `http://localhost:4000/uploads/${friend.profilepicture}` : Profilephoto} alt={friend.name} className="w-8 h-8 rounded-full" />
-            <span>{friend.name}</span>
-          </div>
-        ))}
-      </div>
-      }
-      
-   
+      {friends.length > 0 && (
+        <div className="p-5">
+          <h3 className="font-bold mb-5">Online Friends</h3>
+          {friends.map((friend) => (
+            <div
+              onClick={() => handleLivechat(friend)}
+              key={friend._id}
+              className="relative flex items-center space-x-2 mb-2 cursor-pointer"
+            >
+              {friend.status === 1 ? (
+                <span className="absolute -mt-6 ml-2 w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+              ) : (
+                <span className="w-2 h-2 -ml-2 rounded-full inline-block"></span>
+              )}
+              <img
+                src={friend.profilepicture ? `${backendurl}/uploads/${friend.profilepicture}` : Profilephoto}
+                alt={friend.name}
+                className="w-8 h-8 rounded-full"
+              />
+              <span>{friend.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-export default RightSidebar;
+export default Hoc(RightSidebar);

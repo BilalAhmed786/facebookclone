@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { backendurl } from '../baseurls/baseurls';
 const Login = () => {
 
   const [email, setEmail] = useState('');
@@ -16,7 +17,7 @@ const Login = () => {
       try{
         
         
-        const res = await axios.post('/api/auth/login',{email,password})
+        const res = await axios.post(`${backendurl}/api/auth/login`,{email,password},{withCredentials:true})
     
 
         if(res.data){

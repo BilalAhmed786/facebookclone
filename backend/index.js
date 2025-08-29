@@ -2,8 +2,9 @@ const express = require('express');
 require('dotenv').config()
 require('./database/db')
 const cookieParser = require('cookie-parser');
+const cors = require('cors')
 const path = require('path');
-const authrize = require('./middleware/verifyuser')
+const authorize = require('./middleware/verifyuser')
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const commentRoutes = require('./routes/comments');
@@ -23,12 +24,18 @@ app.use(cookieParser());
 app.use(express.json()); 
 app.use(express.urlencoded({extended:true}))   
 app.use(express.static(path.join(__dirname,'public')))
+app.use(cors({
+
+    origin:'http://localhost:5173',
+    credentials:true
+
+}))
 app.use('/api/auth', authRoutes);
-app.use('/api/posts',authrize, postRoutes);
-app.use('/api/comments',authrize,commentRoutes);
-app.use('/api/users',authrize, usersRoutes);
-app.use('/api/notification',authrize, usernotification);
-app.use('/api/livechat',authrize, chatmessages);
+app.use('/api/posts',authorize, postRoutes);
+app.use('/api/comments',authorize,commentRoutes);
+app.use('/api/users',authorize, usersRoutes);
+app.use('/api/notification',authorize, usernotification);
+app.use('/api/livechat',authorize, chatmessages);
 
 
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { format } from "timeago.js";
 import Profilephoto from "../../images/profilepic.webp";
+import { backendurl } from "../../baseurls/baseurls";
 
 const Followersnotification = ({ usernotifications }) => {
   return (
@@ -23,7 +24,7 @@ const Followersnotification = ({ usernotifications }) => {
               className="w-10 h-10 rounded-full border border-gray-300 object-cover"
               src={
                 userdet.sender.profilepicture
-                  ? `http://localhost:4000/uploads/${userdet.sender.profilepicture}`
+                  ? `${backendurl}/uploads/${userdet.sender.profilepicture}`
                   : Profilephoto
               }
               alt="profile"

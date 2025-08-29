@@ -15,6 +15,7 @@ import ReplyForm from '../Comments/ReplyForm';
 import Preloader from '../Preloader/Preloader';
 import Lastchildreplyform from '../Comments/Lastchildreplyform';
 import Childreplyform from '../Comments/Childreplyform';
+import { backendurl } from '../../baseurls/baseurls';
 
 
 const PostComment = ({
@@ -220,7 +221,7 @@ const PostComment = ({
         {commentsVisible[post._id] && post.comments.map((comment, index) => (
           <div key={index} className="flex flex-col space-y-2">
             <div className="flex items-center space-x-2">
-              <img src={comment.user.profilepicture ? `http://localhost:4000/uploads/${comment.user.profilepicture}` : profilephoto} alt="User" className="w-6 h-6 rounded-full" />
+              <img src={comment.user.profilepicture ? `${backendurl}/uploads/${comment.user.profilepicture}` : profilephoto} alt="User" className="w-6 h-6 rounded-full" />
               <div className="bg-gray-100 p-2 relative rounded flex-1">
                 <div className='flex gap-2 text-xs'><p className="font-bold">{comment.user.name}</p>
                   <span>{format(comment.createdAt)}</span>
@@ -298,7 +299,7 @@ const PostComment = ({
             {childcommentsVisible[comment._id] && comment.replies.map((reply, replyIndex) => (
               <>
                 <div key={replyIndex} className="flex items-center space-x-2 ml-8">
-                  <img src={reply.user.profilepicture ? `http://localhost:4000/uploads/${reply.user.profilepicture}` : profilephoto} alt="User" className="w-5 h-5 rounded-full" />
+                  <img src={reply.user.profilepicture ? `${backendurl}/uploads/${reply.user.profilepicture}` : profilephoto} alt="User" className="w-5 h-5 rounded-full" />
                   <div className="w-full bg-gray-200 p-2 relative rounded flex-1">
                     <div
                       className='flex gap-2 text-xs'>
@@ -383,7 +384,7 @@ const PostComment = ({
                 </div>
                 {childcommentsVisible[reply._id] && reply.replies.map((replies) => (
                   <div key={replyIndex} className="flex items-center space-x-2 ml-14">
-                    <img src={replies.user.profilepicture ? `http://localhost:4000/uploads/${replies.user.profilepicture}` : profilephoto} alt="User" className="w-5 h-5 rounded-full" />
+                    <img src={replies.user.profilepicture ? `${backendurl}/uploads/${replies.user.profilepicture}` : profilephoto} alt="User" className="w-5 h-5 rounded-full" />
                     <div className="bg-gray-200 w-full relative p-2 rounded flex-1">
                       <div className='flex gap-2 text-xs'>
                         <p className="font-bold">{replies.user.name}</p>

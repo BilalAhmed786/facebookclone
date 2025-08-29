@@ -6,17 +6,7 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1000, // Sets limit to 1000 kB
   },
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:4000',
-        changeOrigin: true,
-        secure: false,
-      },
-    },
-  },
-});
+ });
 
 
 

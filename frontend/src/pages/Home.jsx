@@ -7,7 +7,8 @@ import LiveChat from '../components/LiveChat/LiveChat';
 import Togglewall from '../components/button/togglewall';
 import axios from 'axios';
 import Hoc from '../components/Hoc/Hoc';
-const Home = ({socket,userInfo}) => {
+import { backendurl } from '../baseurls/baseurls';
+const Home = ({socket,userInfo,settracker,tracker}) => {
 
   const [userlogin, setUserLogin] = useState('');
   const [chatuser, setChatUser] = useState(false);
@@ -19,7 +20,6 @@ const Home = ({socket,userInfo}) => {
   const [specificnotific, setSpecificnotific] = useState('')
   const [messages, setMessages] = useState([]);
   const [togglerightsb, settogglerightsb] = useState(false)
-  const [crawlerfriend, setCrawler] = useState('')
   const userInfoRef = useRef();
 
 
@@ -29,7 +29,7 @@ const Home = ({socket,userInfo}) => {
     try {
 
 
-      const result = await axios.put(`/api/livechat/updatespecificnotific/${friendid}`)
+      const result = await axios.put(`${backendurl}/api/livechat/updatespecificnotific/${friendid}`,{},{withCreadentials:true})
 
 
 
@@ -98,7 +98,7 @@ const Home = ({socket,userInfo}) => {
 
       try {
 
-        const result = await axios.get('/api/livechat/messages')
+        const result = await axios.get(`${backendurl}/api/livechat/messages`,{withCredentials:true})
 
         const filteredMessages = result.data.filter((message) =>
           message.sender._id !== userInfoRef.current._id)
@@ -119,7 +119,7 @@ const Home = ({socket,userInfo}) => {
   useEffect(() => {
     const fetchOnlineUsers = async () => {
       try {
-        const response = await axios.get('/api/users/onlineuser');
+        const response = await axios.get(`${backendurl}/api/users/onlineuser`,{withCredentials:true});
         setFollowersUser(response.data.finduser);
         setUserLogin(response.data.loginuser);
       } catch (error) {
@@ -144,7 +144,7 @@ const Home = ({socket,userInfo}) => {
         chatuser={chatuser}
         minimized={minimized}
         setMinimized={setMinimized}
-
+       
 
 
 
@@ -182,10 +182,12 @@ const Home = ({socket,userInfo}) => {
               followersUser={followersUser}
               userlogin={userlogin}
               setMinimized={setMinimized}
-              minimized={minimized}
               handleUpdatenotific={handleUpdatenotific}
+              statelivechatnotific={statelivechatnotific}
+              minimized={minimized}
               setChatUser={setChatUser}
               chatuser={chatuser}
+              loginuser = {userInfo._id}
             />
           </div>
         </div>
@@ -200,7 +202,10 @@ const Home = ({socket,userInfo}) => {
           setMinimized={setMinimized}
           minimized={minimized}
           handleUpdatenotific={handleUpdatenotific}
-          crawlerfriend={crawlerfriend}
+          settracker={settracker}
+          tracker={tracker}
+
+       
 
         />
       )}

@@ -1,15 +1,14 @@
 const express = require('express');
 const Message = require('../models/Messages')
 const router = express.Router();
-
 router.get('/messages',async(req,res)=>{
 
     try {
         const messages = await Message.find({
             $or: [{ sender: req.user.userId }, { receiver:req.user.userId }]
         })
-        .populate('sender', 'name profilepicture')
-        .populate('receiver', 'name profilepicture')
+        .populate('sender','name profilepicture status')
+        .populate('receiver','name profilepicture status')
         .sort({ createdAt: 1 });
        
             if(!messages){
@@ -27,11 +26,11 @@ router.get('/messages',async(req,res)=>{
 })
 
 //comment updates notifications
-router.put('/updatenotification/:id',async(req,res)=>{
+router.put('/updatenotification/:msgsender',async(req,res)=>{
 
     try {
                 
-             const result = await Message.updateMany({ receiver: req.params.id }, { $set: { isreviewed: true } });
+             const result = await Message.updateMany({ sender:req.params.msgsender,receiver: req.user.userId }, { $set: { isreviewed: true } });
               
              if(!result){
                 

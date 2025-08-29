@@ -4,7 +4,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import Profilephoto from '../../images/profilepic.webp'
 import Commentnotification from '../Notification/Commentnotification';
 import Followersnotification from '../Notification/Followersnotification';
+import Hoc from '../Hoc/Hoc';
 import axios from 'axios';
+import { backendurl } from '../../baseurls/baseurls';
 
 
 const Topbar = ({
@@ -15,7 +17,8 @@ const Topbar = ({
   setChatUser,
   chatuser,
   minimized,
-  setMinimized
+  setMinimized,
+  handleupdatechatnotification
 }) => {
 
 
@@ -28,31 +31,20 @@ const Topbar = ({
   const [followernotificat, statefollowernotific] = useState('')
   const navigate = useNavigate();
 
-
+const filtermessages =  messages.filter((view) => view.isreviewed === false)
 
 
   //update chate messages notifications 
-  const handleMessagenotif = async (id) => {
+  const Messagenotif = async (msgsender) => {
 
     socket.emit('friendinfo', 'chat')
 
     statetogglenotific(!togglenotific);
-
-    try {
-
-      const result = await axios.put(`/api/livechat/updatenotification/${id}`)
-
-
-      if (result) {
-
-        statelivechatnotific(Date.now())
-
-      }
-
-    } catch (error) {
-      console.log(error)
-    }
-
+    
+    await handleupdatechatnotification(msgsender) //update chat notificaiton
+    
+    statelivechatnotific(Date.now())
+    
 
   };
 
@@ -69,7 +61,7 @@ const Topbar = ({
 
     try {
 
-      const result = await axios.put('/api/notification/updatenotifications')
+      const result = await axios.put(`${backendurl}/api/notification/updatenotifications`,{},{withCredentials:true})
 
    
       statefollowernotific(Date.now())
@@ -88,7 +80,7 @@ const Topbar = ({
 
   const handleLogout = async () => {
     try {
-      const res = await axios.post('/api/auth/logout');
+      const res = await axios.post(`${backendurl}/api/auth/logout`,{},{withCredentials:true});
       if (res.data) {
         navigate('/');
       }
@@ -128,7 +120,7 @@ const Topbar = ({
     const notifications = async () => {
       try {
 
-        const result = await axios.get('/api/notification/followers')
+        const result = await axios.get(`${backendurl}/api/notification/followers`,{withCredentials:true})
 
 
         stateNotifications(result.data)
@@ -209,22 +201,22 @@ const Topbar = ({
             )}
           </div>
           <div className="relative cursor-pointer"
-            onClick={() => handleMessagenotif(userInfo._id)}>
+            onClick={() => statetogglenotific(true)}>
             <FaComment className="text-sm" />
             <span className="absolute -top-1 -right-2 bg-red-500 rounded-full px-1 text-xs text-white">
-              {messages.length > 0 && messages.filter((view) => view.isreviewed === false).length}
+              {messages.length > 0 && filtermessages.length}
             </span>
             {togglenotific && (
               <div className="absolute z-50 cursor-pointer -left-40 mt-2.5"
                 ref={notificationRef} onClick={(e) => e.stopPropagation()}>
                 <Commentnotification
-                  notification={messages}
+                  notification={filtermessages}
                   socket={socket}
-                  statetogglenotific={statetogglenotific}
+                  Messagenotif={Messagenotif}
                   setChatUser={setChatUser}
-                  chatuser={chatuser}
                   minimized={minimized}
                   setMinimized={setMinimized}
+                  userInfo={userInfo}
 
                 />
               </div>
@@ -254,7 +246,7 @@ const Topbar = ({
               </div>
             }
             <img
-              src={userInfo.profilepicture ? `http://localhost:4000/uploads/${userInfo.profilepicture}` : Profilephoto}
+              src={userInfo.profilepicture ? `${backendurl}/uploads/${userInfo.profilepicture}` : Profilephoto}
               alt="Profile"
               className="w-12 h-12 object-cover ml-6 cursor-pointer rounded-full"
             />
@@ -265,4 +257,4 @@ const Topbar = ({
   );
 };
 
-export default Topbar;
+export default Hoc(Topbar);

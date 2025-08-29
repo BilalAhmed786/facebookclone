@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { backendurl } from '../../baseurls/baseurls'
 
 const Commentreplyedit = (
   { commenteditid,
@@ -17,7 +18,7 @@ const Commentreplyedit = (
 
     const getcomment = async () => {
 
-      const commentedit = await axios.post(`/api/comments/childcommentedit/${commenteditid}`, { commentreplyid })
+      const commentedit = await axios.post(`${backendurl}/api/comments/childcommentedit/${commenteditid}`, { commentreplyid },{withCredentials:true})
 
       setComment(commentedit.data)
 
@@ -37,7 +38,7 @@ const Commentreplyedit = (
 
     try {
 
-      const result = await axios.put(`/api/comments/updatechildcomment/${commenteditid}`, { comment, commentreplyid })
+      const result = await axios.put(`${backendurl}/api/comments/updatechildcomment/${commenteditid}`, { comment, commentreplyid },{withCredentials:true})
 
       toast.success(result.data.msg)
 

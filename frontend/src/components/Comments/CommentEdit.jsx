@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { backendurl } from '../../baseurls/baseurls'
 
 const CommentEdit = ({ commenteditid,seteditCommentvisible,socket }) => {
 
@@ -11,7 +12,7 @@ const CommentEdit = ({ commenteditid,seteditCommentvisible,socket }) => {
     
     const getcomment = async()=>{
 
-      const commentedit = await axios.get(`/api/comments/singlecomment/${commenteditid}`)
+      const commentedit = await axios.get(`${backendurl}/api/comments/singlecomment/${commenteditid}`,{withCredentials:true})
 
        
       if(commentedit){
@@ -36,7 +37,7 @@ const CommentEdit = ({ commenteditid,seteditCommentvisible,socket }) => {
 
   try{
     
-  const result =  await axios.put(`/api/comments/updatecomment/${commenteditid}`,{comment})
+  const result =  await axios.put(`${backendurl}/api/comments/updatecomment/${commenteditid}`,{comment},{withCredentials:true})
 
     toast.success(result.data.msg)
     

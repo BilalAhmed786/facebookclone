@@ -8,6 +8,7 @@ import Profiletopbar from '../components/Topbar/profiletopbar';
 import Togglewall from '../components/button/togglewall';
 import Hoc from '../components/Hoc/Hoc';
 import { useParams } from 'react-router-dom';
+import { backendurl } from '../baseurls/baseurls';
 
 const Profile = ({socket,userInfo,setRender}) => {
     const [coverPic, setCoverPic] = useState('');
@@ -25,7 +26,6 @@ const Profile = ({socket,userInfo,setRender}) => {
 //follow  user notification in real-time
 
 useEffect(()=>{ 
-socket?.connect()
 
 socket?.emit('followuser',followeduser)
 
@@ -39,9 +39,8 @@ const friendInfo = (data)=>{
 
 }
 
-
-
-    socket?.on('followernotific',friendInfo)
+  socket?.on('followernotific',friendInfo)
+   
 
 
 return ()=>{
@@ -52,12 +51,12 @@ return ()=>{
 }
 
 
-},[followeduser])
+},[socket,followeduser])
 
     useEffect(() => {
         const userinfo = async () => { //for profile of friend users 
             try {
-                const user = await axios.get(`/api/users/singleuser/${id}`);
+                const user = await axios.get(`${backendurl}/api/users/singleuser/${id}`,{withCredentials:true});
                
                 setUserinfo(user.data.finduser)
                 setLoginUser(user.data.loginuser)
@@ -72,11 +71,7 @@ return ()=>{
     
         userinfo();
   
-  return ()=>{
 
-        socket?.disconnect()
-  }
-  
     }, [pagerender, id]);
 
   
@@ -104,6 +99,7 @@ return (
                 userinfo={userinfo}
                 friendinfo={friendinfo}
                 setRender={setRender}
+                socket={socket}
 
                 
                 />

@@ -3,6 +3,7 @@ import ReactDOM from "react-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { FaCamera } from "react-icons/fa";
+import { backendurl } from "../../../baseurls/baseurls";
 
 const ColorPicker = ({ setBgColor }) => {
   const colors = [
@@ -39,25 +40,32 @@ const Postedit = ({ seteditVisible, editVisible, editId, socket }) => {
   };
 
   const handleFileChange = async (event) => {
-    const files = Array.from(event.target.files);
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file);
-    });
-    try {
-      const response = await axios.post("/api/posts/editupload", formData, {
+  const files = Array.from(event.target.files);
+  const formData = new FormData();
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+
+  try {
+    const response = await axios.post(
+      `${backendurl}/api/posts/editupload`,
+      formData,
+      {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      });
+        withCredentials: true,
+      }
+    );
 
-      const newImages = response.data.map((file) => file);
-      setImages((prevImages) => [...prevImages, ...newImages]);
-      setIsTextOnly(false);
-    } catch (error) {
-      toast.error("Error uploading images");
-    }
-  };
+    const newImages = response.data.map((file) => file);
+    setImages((prevImages) => [...prevImages, ...newImages]);
+    setIsTextOnly(false);
+  } catch (error) {
+    toast.error(error.response?.data || "Error uploading images");
+  }
+};
+
 
   const handlePost = async () => {
     if (!text.trim() && images.length === 0) {
@@ -67,12 +75,12 @@ const Postedit = ({ seteditVisible, editVisible, editId, socket }) => {
     }
 
     try {
-      const combinedData = [...images, text];
-      const post = await axios.post("/api/posts/updatepost", {
+      
+      const post = await axios.post(`${backendurl}/api/posts/updatepost`, {
         bgcolor,
         editId,
-        text: combinedData,
-      });
+        text: images.length ? images:[text],
+      },{withCredentials:true});
       toast.success(post.data.msg);
 
       socket.emit("updatepost", post.data.postdata);
@@ -109,7 +117,7 @@ const Postedit = ({ seteditVisible, editVisible, editId, socket }) => {
   useEffect(() => {
     const fetchPostData = async () => {
       try {
-        const singlepost = await axios.get(`/api/posts/singlepost/${editId}`);
+        const singlepost = await axios.get(`${backendurl}/api/posts/singlepost/${editId}`,{withCredentials:true});
         const postContent = singlepost.data.text || [];
 
         const postImages = postContent.filter(
@@ -181,7 +189,7 @@ const Postedit = ({ seteditVisible, editVisible, editId, socket }) => {
                 className="relative w-1/2 sm:w-1/3 p-1 flex justify-center"
               >
                 <img
-                  src={`http://localhost:4000/uploads/${image}`}
+                  src={`${backendurl}/uploads/${image}`}
                   alt="Post"
                   className="w-full h-40 object-cover rounded-md"
                 />

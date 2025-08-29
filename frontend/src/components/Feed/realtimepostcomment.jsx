@@ -7,6 +7,7 @@ useEffect(() => {
     //for post show in real-time to all followers
     const handlePostData = (data) => {
 
+   
       setPostdata((prevState) => [data, ...prevState])
 
     };

@@ -4,6 +4,7 @@ import Profilehoto from '../../images/profilepic.webp'
 import { FaCamera, FaEdit } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import axios from 'axios';
+import { backendurl } from '../../baseurls/baseurls';
 const profilecover = (
     {
     coverPic,
@@ -38,7 +39,7 @@ const profilecover = (
 
         try {
 
-           const result =  await axios.put(`/api/users/follow/${id}`,{ friendinfo:friendinfo ? friendinfo:false})
+           const result =  await axios.put(`${backendurl}/api/users/follow/${id}`,{ friendinfo:friendinfo ? friendinfo:false},{withCredentials:true})
 
           
                 
@@ -46,7 +47,7 @@ const profilecover = (
 
                 // setFollowings(result.data.following)
                 setFolloweduser(result.data.followeduserinfo)
-
+                
                 setpagerender(Date.now())
 
 
@@ -66,7 +67,7 @@ const profilecover = (
         e.preventDefault()
         try {
 
-            const result = await axios.put('/api/users/usernameedit', { username })
+            const result = await axios.put(`${backendurl}/api/users/usernameedit`, { username },{withCredentials:true})
 
             toast.success(result.data)
             setpagerender(Date.now())
@@ -86,8 +87,9 @@ const profilecover = (
         formData.append('file', file);
 
         try {
-            const response = await axios.post('/api/users/uploadcover', formData, {
+            const response = await axios.post(`${backendurl}/api/users/uploadcover`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
+                withCredentials:true
             });
 
             toast.success('Cover photo uploaded successfully');
@@ -107,8 +109,9 @@ const profilecover = (
         formData.append('file', file);
 
         try {
-            const response = await axios.post('/api/users/uploadprofile', formData, {
+            const response = await axios.post(`${backendurl}/api/users/uploadprofile`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
+                withCredentials:true
             });
 
             toast.success('Profile picture uploaded successfully');
@@ -137,7 +140,7 @@ const profilecover = (
                 {coverPic ?
                     <img
                         className="w-full h-[460px] object-cover"
-                        src={`http://localhost:4000/uploads/${coverPic}`}
+                        src={`${backendurl}/uploads/${coverPic}`}
 
                     />
                     :
@@ -170,7 +173,7 @@ const profilecover = (
                     {profilePic ?
                         <img
                             className='w-40 h-40 object-cover rounded-full'
-                            src={`http://localhost:4000/uploads/${profilePic}`}
+                            src={`${backendurl}/uploads/${profilePic}`}
 
                         /> :
                         <img

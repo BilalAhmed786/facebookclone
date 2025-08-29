@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ImageViewer from "./Imageviewer";
+import { backendurl } from "../../../baseurls/baseurls";
 
 const Post = ({ post }) => {
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -7,10 +8,10 @@ const Post = ({ post }) => {
 
   // Separate texts and images
   const images = post.text.filter((item) =>
-    item.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/)
+    item.toLowerCase().match(/\.(jpeg|jpg|png|gif|jfif)$/)
   );
   const texts = post.text.filter(
-    (item) => !item.toLowerCase().match(/\.(jpeg|jpg|png|gif)$/)
+    (item) => !item.toLowerCase().match(/\.(jpeg|jpg|png|gif|jfif)$/)
   );
 
 
@@ -20,7 +21,7 @@ const Post = ({ post }) => {
       {texts.map((txt, i) => (
         <div
           key={i}
-          className={`w-full text-justify p-5 h-60 overflow-auto ${post.bgcolor || "bg-gray-100"
+          className={`left-sidebar w-full text-justify p-5 h-60 overflow-auto ${post.bgcolor || "bg-gray-100"
             } ${!post.bgcolor ? "text-black" : "text-white"} font-semibold text-lg rounded-md`}
         >
           {txt}
@@ -48,7 +49,7 @@ const Post = ({ post }) => {
                 }}
               >
                 <img
-                  src={`http://localhost:4000/uploads/${img}`}
+                  src={`${backendurl}/uploads/${img}`}
                   alt="post"
                   className="w-full h-full object-cover rounded-md"
                 />

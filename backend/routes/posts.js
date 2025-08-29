@@ -208,31 +208,8 @@ router.post('/updatepost', async (req, res) => {
 
         const post = await Post.findById(req.body.editId)
 
-        const filterfiles = post.text.filter(file => !req.body.text.includes(file));
-
-
-        const removefiles = filterfiles.map((files) => {
-
-            const filePath = path.join(__dirname, '../public/uploads', files);
-
-            fs.unlink(filePath, (err) => {
-
-                if (err) {
-
-                    console.log('files not found')
-                }
-            })
-
-        })
-
-        if (removefiles) {
-
-            console.log('files removed')
-        }
-
-
         post.text = req.body.text;
-        post.bgcolor = req.body.bgcolor; // Assuming bgcolor is also updated
+        post.bgcolor = req.body.bgcolor; 
 
           const postedit = await post.save();
        

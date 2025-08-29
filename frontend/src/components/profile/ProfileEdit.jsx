@@ -14,7 +14,7 @@ const ProfileEdit = ({ onClose,userinfo,setpagerender}) => {
          e.preventDefault();
     try{
 
-      const result = await axios.put('/api/users/userinfoedit',{city,from,relationship})
+      const result = await axios.put(`${backendurl}/api/users/userinfoedit`,{city,from,relationship},{withCredentials:true})
 
       toast.success(result.data)
       

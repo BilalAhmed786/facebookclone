@@ -122,7 +122,7 @@ router.put('/follow/:id', async (req, res) => {
             await currentUser.save();
             await notify.save();
            
-            const userinfo = await Notifications.findOne({_id:notify._id}).populate('sender','name profilepicture')
+            const userinfo = await Notifications.findOne({_id:notify._id}).populate('sender','name profilepicture status')
 
             return res.json({ msg: 'Followed successfully', following: currentUser.following,followeduserinfo:userinfo });
         } else {
@@ -143,9 +143,9 @@ router.put('/follow/:id', async (req, res) => {
             await currentUser.save();
             await notify.save();
 
-            const userinfo = await Notifications.findOne({_id:notify._id}).populate('sender','name profilepicture')
+            const userinfo = await Notifications.findOne({_id:notify._id}).populate('sender','name profilepicture status')
            
-            return res.json({ msg: 'Unfollowed successfully', following: currentUser.following,followeduserinfo:userinfo });
+            return res.json({ msg: 'Unfollowed successfully', following: currentUser,followeduserinfo:userinfo });
         }
     } catch (error) {
         console.error(error);
@@ -165,20 +165,6 @@ router.post('/uploadcover',upload.single('file'),async(req,res)=>{
 
     }
 
-         const filepath =  path.join(__dirname,'../public/uploads',user.coverpicture)
-             
-          fs.unlink(filepath,(err)=>{
-
-            if(err){
-               
-                console.log('file not found')
-            }else{
-
-                console.log('previous cover remove')
-            }
-
-        
-          })
 
         user.coverpicture = req.file.filename;
 
@@ -204,25 +190,7 @@ router.post('/uploadprofile',upload.single('file'),async(req,res)=>{
 
     }
 
-    const filepath =  path.join(__dirname,'../public/uploads',user.profilepicture)
-             
-          fs.unlink(filepath,(err)=>{
-
-            if(err){
-               
-
-                console.log('file not found')
-
-
-            }else{
-
-                console.log('previous profile pic remove')
-            }   
-
-        
-          })
-
-        user.profilepicture = req.file.filename;
+       user.profilepicture = req.file.filename;
 
         const userprofilepic = await user.save()
 

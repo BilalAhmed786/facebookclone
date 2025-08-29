@@ -6,16 +6,20 @@ import  profilephoto from '../../images/profilepic.webp'
 import { format } from 'timeago.js';
 import axios from 'axios';
 import { BsEmojiSmileFill, BsPaperclip, BsFillSendFill } from 'react-icons/bs';
+import { backendurl } from '../../baseurls/baseurls';
 
 
-const LiveChat = ({ friend,
+const LiveChat = ({ 
+    friend,
     Chatuser,
     userlogin,
     socket,
     setMinimized,
     minimized,
     handleUpdatenotific,
-    crawlerfriend
+    settracker,
+    tracker
+
 }) => {
 
     const [message, setMessage] = useState('');
@@ -27,7 +31,11 @@ const LiveChat = ({ friend,
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
     const liveChatRef = useRef(null);
     
-    // Emoji handler
+
+
+    const userexist =  tracker.some((users)=>users.loginuser === friend.userid && users.chatuser === userlogin)
+
+
     const onEmojiClick = (event, emojiObject) => {
         setMessage((prevInput) => prevInput + event.emoji);
     };
@@ -50,41 +58,30 @@ const LiveChat = ({ friend,
         setSelectedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
 
-    const handleMiniChat = async (friendid, minimized) => {
+    const handleMiniChat = async (chatuserid,loginuser, minimized) => {
 
+            //socket usertrack
 
-        handleUpdatenotific(friendid)
+            socket?.emit('chattracker',{loginuser,chatuser:0})
         
+        handleUpdatenotific(chatuserid)
         setMinimized(!minimized)
         
-        socket.emit('friendinfo', minimized === true ? friendid : 1)
+     
     
     }
    
 
-    const handleCloseChat = () => {
+    const handleCloseChat = (loginuser) => {
 
-        socket.emit('friendinfo', 1)
+            //socket work
+        socket?.emit('chattracker',{loginuser,chatuser:0})
+        
         Chatuser(false)
     }
 
-    //socket emit friend userinfo for chat
-
-    useEffect(() => {
-
-        // Emit the 'chatuserinfo' event to the server with the friend's user ID
-        socket.emit('friendinfo',
-                
-            minimized === true ? 1 : friend.userid,
-            
-
-        );
-
-        // Define the event listener function
-       
-    }, [socket, friend.userid]); // Added dependencies to ensure correct behavior
-
-    useEffect(() => {
+   
+  useEffect(() => {
 
         const handleIncomingMessage = (msg) => {
 
@@ -93,11 +90,15 @@ const LiveChat = ({ friend,
 
         };
 
+   
+
         // Set up socket listener for incoming chat messages
-        socket.on('chatretreive', handleIncomingMessage);
+             socket?.on('chatretreive', handleIncomingMessage);
+            
 
         return () => {
-            socket.off('chatretreive', handleIncomingMessage);
+            socket?.off('chatretreive', handleIncomingMessage);
+            
         }
     }, [socket])
 
@@ -108,7 +109,7 @@ const LiveChat = ({ friend,
             try {
 
 
-                const result = await axios.get('/api/livechat/messages')
+                const result = await axios.get(`${backendurl}/api/livechat/messages`,{withCredentials:true})
 
 
                 setMessages(result.data)
@@ -145,10 +146,7 @@ const LiveChat = ({ friend,
                     senderId: userlogin,
                     receiverId: friend.userid,
                     content: message,
-                    isreviewed: crawlerfriend === userlogin || 
-                    crawlerfriend === 'chat' || 
-                    crawlerfriend=== 'nochat' ||
-                    crawlerfriend === 'nochat' && minimized === false ? true : false,
+                    isreviewed:userexist && friend.userstatus === 1 && !minimized ? true:false,
                     files: files,
                 });
 
@@ -184,7 +182,7 @@ const LiveChat = ({ friend,
             <div className="flex justify-between items-center p-2 border-b bg-blue-500 text-white rounded-xl">
                 <div className="flex items-center space-x-2">
                     <img
-                        src={friend.userprofile? `http://localhost:4000/uploads/${friend.userprofile}`:profilephoto}
+                        src={friend.userprofile? `${backendurl}/uploads/${friend.userprofile}`:profilephoto}
                         alt={friend.username}
                         className="w-8 h-8 rounded-full"
                     />
@@ -192,8 +190,8 @@ const LiveChat = ({ friend,
 
                 </div>
                 <div className="cursor-pointer flex space-x-2">
-                    <FaMinus className='text-xs' onClick={() => handleMiniChat(friend.userid, minimized)} />
-                    <FaTimes className='text-xs' onClick={handleCloseChat} />
+                    <FaMinus className='text-xs' onClick={() => handleMiniChat(friend.userid,userlogin,minimized)} />
+                    <FaTimes className='text-xs' onClick={()=>handleCloseChat(userlogin)} />
                 </div>
             </div>
 
@@ -204,7 +202,7 @@ const LiveChat = ({ friend,
                             <div key={index} className={`mb-2 p-2 rounded-lg ${msg.sender?._id === userlogin ? 'bg-blue-100 self-end' : 'bg-gray-100 self-start'}`}>
                                 <div className="flex items-center space-x-2 mb-1">
                                     <img
-                                        src={msg.sender.profilepicture?`http://localhost:4000/uploads/${msg.sender?.profilepicture}`:profilephoto}
+                                        src={msg.sender.profilepicture?`${backendurl}/uploads/${msg.sender?.profilepicture}`:profilephoto}
                                         alt={msg.sender?.username}
                                         className="w-6 h-6 rounded-full"
                                     />
@@ -214,15 +212,15 @@ const LiveChat = ({ friend,
                                 {msg.content && <p className='text-black'>{msg.content}</p>}
                                 {msg.files && msg.files.map((file, fileIndex) => (
                                     <div key={fileIndex}>
-                                        {file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png') || file.endsWith('.gif') ? (
+                                        {file.endsWith('.jpg') || file.endsWith('.jpeg') || file.endsWith('.png') || file.endsWith('.gif') || file.endsWith('.jfif') ? (
                                             <div className=''>
                                                 <img
-                                                    src={`http://localhost:4000/uploads/${file}`}
+                                                    src={`${backendurl}/uploads/${file}`}
                                                     alt={file}
                                                     className="w-40 h-40 object-cover rounded mt-1"
                                                 />
                                                 <a
-                                                    href={`http://localhost:4000/uploads/${file}`}
+                                                    href={`${backendurl}/uploads/${file}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     download
@@ -232,7 +230,7 @@ const LiveChat = ({ friend,
                                                 </a>
                                             </div>
                                         ) : (
-                                            <a href={`http://localhost:4000/uploads/${file}`} download={file}>{file}</a>
+                                            <a href={`${backendurl}/uploads/${file}`} download={file}>{file}</a>
                                         )}
                                     </div>
                                 ))}

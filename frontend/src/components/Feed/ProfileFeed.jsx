@@ -6,6 +6,7 @@ import Profilephoto from '../../images/profilepic.webp'
 import Hoc from '../Hoc/Hoc';
 import { FaCamera } from 'react-icons/fa';
 import { useParams } from 'react-router-dom';
+import { backendurl } from '../../baseurls/baseurls';
 
 
 const ProfileFeed = ({
@@ -54,7 +55,7 @@ const ProfileFeed = ({
   useEffect(() => {
     const postRetrieve = async () => {
       try {
-        const result = await axios.get(`/api/posts/timeline/${id}`);
+        const result = await axios.get(`${backendurl}/api/posts/timeline/${id}`,{withCredentials:true});
         setPostdata(result.data.allPosts); // all data 
         setUser(result.data.Userid); // post user details
       } catch (error) {
@@ -80,7 +81,7 @@ const ProfileFeed = ({
         <div className="relative">
           <div className="mb-4 p-4 border rounded shadow-sm">
             <div className="flex items-center space-x-2">
-              <img src={profilePic ? `http://localhost:4000/uploads/${profilePic}` : Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
+              <img src={profilePic ? `${backendurl}/uploads/${profilePic}` : Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
               <input
                 type="text"
                 onClick={() => setIsVisible(true)}

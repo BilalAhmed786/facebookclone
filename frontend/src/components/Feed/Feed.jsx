@@ -7,6 +7,7 @@ import Profilephoto from '../../images/profilepic.webp'
 import Hoc from '../Hoc/Hoc';
 import { FaCamera } from 'react-icons/fa';
 import realtimepostcomment from './realtimepostcomment';
+import { backendurl } from '../../baseurls/baseurls';
 
 const Feed = ({
   handleComment,
@@ -61,7 +62,7 @@ const Feed = ({
   useEffect(() => {
     const postRetrieve = async () => {
       try {
-        const result = await axios.get('/api/posts/allposts');
+        const result = await axios.get(`${backendurl}/api/posts/allposts`,{withCredentials:true});
 
         setPostdata(result.data.allPosts); // all data 
         setUser(result.data.Userid); // current userid
@@ -84,7 +85,7 @@ const Feed = ({
       <div className="relative mt-8">
         <div className="mb-4 p-4 border rounded shadow-sm">
           <div className="flex items-center space-x-2">
-            <img src={loginuser.profilepicture ? `http://localhost:4000/uploads/${loginuser.profilepicture}` : Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
+            <img src={loginuser.profilepicture ? `${backendurl}/uploads/${loginuser.profilepicture}` : Profilephoto} alt="User" className="w-10 h-10 rounded-full" />
             <input
               type="text"
               onClick={() => setIsVisible(true)}
@@ -147,7 +148,7 @@ const Feed = ({
  
         {/* if no post render this message */}
 
-      {postdata.length === 0 &&
+      { postdata.length === 0 &&
       
       <div className='w-full flex justify-center items-center min-h-40 shadow-md'>
         

@@ -3,11 +3,14 @@ const { userLogedInn, userLoggedout } = require('../utils/userStatus');
 const Message = require('../models/Messages');
 const path = require('path');
 const fs = require('fs').promises;
+const cookie = require("cookie");
+const jwt = require("jsonwebtoken");
+
 
 function initializeSocket(server) {
     const io = new Server(server, {
         cors: {
-            origin: '*',
+            origin: 'http://localhost:5173',
             methods: ['GET', 'POST', 'DELETE', 'PUT'],
             credentials: true,
         },
@@ -16,13 +19,13 @@ function initializeSocket(server) {
 
     io.on('connection', (socket) => {
 
-        socket.on('userid', async (userId) => {
+       socket.on('userid', async (userId) => {
 
-            socket.userId = userId;  //instead of socketid we use user id for stability
+            socket.userId = userId; 
             
-            socket.join(userId);//every loggedin user connect to socket
+            socket.join(userId);
 
-            await userLogedInn(userId); // login user status online(1)
+            await userLogedInn(userId); 
 
             io.emit('statusUpdate', { userId, status: 1 }); //emit to all loggedin user logedin userstatus(1)
 
@@ -30,6 +33,15 @@ function initializeSocket(server) {
 
         });
 
+      //chatusertrack
+
+        socket.on('chattracker',(data)=>{
+           
+            socket.broadcast.emit('chattracker',data)
+
+        })
+
+        
         socket.on('chatMessage', async (data) => { //for real-time chat
             const { files, senderId, receiverId, content, isreviewed } = data;
 
@@ -70,11 +82,11 @@ function initializeSocket(server) {
 
 
         //track login user currently chat with which friend
-        socket.on('friendinfo', (id) => {
+        // socket.on('friendinfo', (id) => {
          
-            socket.broadcast.emit('friendinfo', id);
+        //     socket.broadcast.emit('friendinfo', id);
 
-        });
+        // });
 
         //emit notification to logedin user to whom someone follow in real-time 
         socket.on('followuser', (followuser) => {
@@ -426,10 +438,12 @@ socket.on('replytolastchild', (data) => {
 })   
 
         socket.on('disconnect', async () => {
-            console.log(socket.userId)
-            // console.log(`Client disconnected: ${socket.id}`);
-            const user = await userLoggedout(socket.userId);
-            if (user) {
+                if(!socket.userId){
+                    return
+                }
+              const user = await userLoggedout(socket.userId);
+          
+              if (user) {
                 io.emit('statusUpdate', { userId: user._id, status: 0 });
             }
         });

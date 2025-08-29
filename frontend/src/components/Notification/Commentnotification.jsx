@@ -1,20 +1,32 @@
 import React from "react";
 import { format } from "timeago.js";
+import { backendurl } from "../../baseurls/baseurls";
 
 const Commentnotification = ({ 
   notification,
   setChatUser,
-  minimized,
-  setMinimized 
+  setMinimized,
+  socket,
+  userInfo,
+  Messagenotif,
 }) => {
   const handleMessagenotif = (userdet) => {
+   
+    socket?.emit('chattracker',{loginuser:userInfo._id,chatuser:userdet.sender._id})
     setChatUser({
       username: userdet.sender.name,
       userid: userdet.sender._id,
       userprofile: userdet.sender.profilepicture,
+      userstatus:userdet.sender.status
+      
     });
+
+    Messagenotif(userdet.sender._id)
+
     setMinimized(false);
   };
+
+
 
   return (
     <div className="left-sidebar fixed top-16 right-0 w-[90%] sm:w-80 max-h-80 bg-white shadow-xl 
@@ -34,7 +46,7 @@ const Commentnotification = ({
           >
             <img
               className="w-10 h-10 rounded-full border border-gray-300 object-cover"
-              src={`http://localhost:4000/uploads/${userdet.sender.profilepicture}`}
+              src={`${backendurl}/uploads/${userdet.sender.profilepicture}`}
               alt="profile"
             />
             <div className="flex flex-col flex-1">
