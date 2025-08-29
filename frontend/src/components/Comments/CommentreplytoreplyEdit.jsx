@@ -12,7 +12,7 @@ const CommentreplytoreplyEdit = ({ commenteditid,replyid,seteditCommentvisible,s
 
     const getcomment = async () => {
 
-      const commentedit = await axios.get(`${backendurl}/api/comments/replytoreplyedit/${commenteditid}`,{},{withCredentials:true})
+      const commentedit = await axios.get(`${backendurl}/api/comments/replytoreplyedit/${commenteditid}`,{withCredentials:true})
 
       setComment(commentedit.data)
 

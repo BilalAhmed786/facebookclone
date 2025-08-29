@@ -389,6 +389,7 @@ const Hoc = (Common) => {
             withCredentials:true
         });
         toast.success(response.data);
+        socket?.emit('postdata',response.data.postdata) 
         setSelectedFiles([]); // Clear the selected files after successful upload
       } catch (error) {
         toast.error(error.response.data);
