@@ -105,12 +105,12 @@ const RightSidebar = ({
 
       {friends.length > 0 && (
         <div className="p-5">
-          <h3 className="font-bold mb-5">Online Friends</h3>
+          <h3 className="font-bold mb-5">Friends</h3>
           {friends.map((friend) => (
             <div
               onClick={() => handleLivechat(friend)}
               key={friend._id}
-              className="relative flex items-center space-x-2 mb-2 cursor-pointer"
+              className="relative p-1 flex items-center space-x-3 mb-2 cursor-pointer hover:bg-slate-300"
             >
               {friend.status === 1 ? (
                 <span className="absolute -mt-6 ml-2 w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
