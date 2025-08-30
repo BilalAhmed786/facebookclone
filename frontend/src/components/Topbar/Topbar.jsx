@@ -37,7 +37,7 @@ const filtermessages =  messages.filter((view) => view.isreviewed === false)
   //update chate messages notifications 
   const Messagenotif = async (msgsender) => {
 
-    socket.emit('friendinfo', 'chat')
+  
 
     statetogglenotific(!togglenotific);
     
@@ -54,7 +54,7 @@ const filtermessages =  messages.filter((view) => view.isreviewed === false)
   //handle followers notification set 
   const handleFollowersnotif = async () => {
 
-    socket.emit('followernotific', 'follower')
+    socket?.emit('followernotific', 'follower')
 
 
     statetogglefollowers(!togglefollowers);
@@ -101,11 +101,11 @@ const filtermessages =  messages.filter((view) => view.isreviewed === false)
 
     }
 
-    socket.on('followuser', followeduser)
+    socket?.on('followuser', followeduser)
 
     return () => {
 
-      socket.off('followuser', followeduser)
+      socket?.off('followuser', followeduser)
 
     }
 
@@ -257,4 +257,4 @@ const filtermessages =  messages.filter((view) => view.isreviewed === false)
   );
 };
 
-export default Hoc(Topbar);
+export default Topbar;

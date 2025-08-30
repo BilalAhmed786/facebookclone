@@ -7,18 +7,21 @@ import { format } from 'timeago.js';
 import axios from 'axios';
 import { BsEmojiSmileFill, BsPaperclip, BsFillSendFill } from 'react-icons/bs';
 import { backendurl } from '../../baseurls/baseurls';
+import Hoc from '../Hoc/Hoc';
 
 
 const LiveChat = ({ 
     friend,
-    Chatuser,
+    setChatUser,
     userlogin,
     socket,
     setMinimized,
     minimized,
     handleUpdatenotific,
-    settracker,
-    tracker
+    handleupdatechatnotification,
+    statelivechatnotific,
+    tracker,
+
 
 }) => {
 
@@ -30,11 +33,12 @@ const LiveChat = ({
     const chatContainerRef = useRef(null); // Reference for the chat container
     const messagesEndRef = useRef(null); // Reference for the bottom of the chat
     const liveChatRef = useRef(null);
+
     
+    const exist = tracker.some((users)=>users.loginuser === friend.userid && users.chatuser === userlogin)
 
-
-    const userexist =  tracker.some((users)=>users.loginuser === friend.userid && users.chatuser === userlogin)
-
+    console.log(exist)
+    console.log(tracker)
 
     const onEmojiClick = (event, emojiObject) => {
         setMessage((prevInput) => prevInput + event.emoji);
@@ -61,10 +65,19 @@ const LiveChat = ({
     const handleMiniChat = async (chatuserid,loginuser, minimized) => {
 
             //socket usertrack
+            
+            
+            if(minimized){
+            socket?.emit('chattracker',{loginuser,chatuser:chatuserid})
+            await handleUpdatenotific(chatuserid)
+            await handleupdatechatnotification(chatuserid)
+            statelivechatnotific(Date.now())
 
-            socket?.emit('chattracker',{loginuser,chatuser:0})
-        
-        handleUpdatenotific(chatuserid)
+        }else if(!minimized){
+            
+            socket?.emit('chattracker',{loginuser,chatuser:'12345'})
+        }
+   
         setMinimized(!minimized)
         
      
@@ -75,9 +88,9 @@ const LiveChat = ({
     const handleCloseChat = (loginuser) => {
 
             //socket work
-        socket?.emit('chattracker',{loginuser,chatuser:0})
+        socket?.emit('chattracker',{loginuser,chatuser:'12345'})
         
-        Chatuser(false)
+        setChatUser(false)
     }
 
    
@@ -128,6 +141,9 @@ const LiveChat = ({
 
     }, [])
 
+
+
+
     // Handle sending messages
     const handleSendMessage = (e) => {
         e.preventDefault();
@@ -146,7 +162,7 @@ const LiveChat = ({
                     senderId: userlogin,
                     receiverId: friend.userid,
                     content: message,
-                    isreviewed:userexist && friend.userstatus === 1 && !minimized ? true:false,
+                    isreviewed:exist && friend.userstatus === 1 ? true:false,
                     files: files,
                 });
 

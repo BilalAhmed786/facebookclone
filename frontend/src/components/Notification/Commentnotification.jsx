@@ -12,7 +12,6 @@ const Commentnotification = ({
 }) => {
   const handleMessagenotif = (userdet) => {
    
-    socket?.emit('chattracker',{loginuser:userInfo._id,chatuser:userdet.sender._id})
     setChatUser({
       username: userdet.sender.name,
       userid: userdet.sender._id,
@@ -20,7 +19,9 @@ const Commentnotification = ({
       userstatus:userdet.sender.status
       
     });
-
+    
+    socket?.emit('chattracker',{loginuser:userInfo._id,chatuser:userdet.sender._id})
+  
     Messagenotif(userdet.sender._id)
 
     setMinimized(false);

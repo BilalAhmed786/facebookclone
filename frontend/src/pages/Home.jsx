@@ -8,10 +8,11 @@ import Togglewall from '../components/button/togglewall';
 import axios from 'axios';
 import Hoc from '../components/Hoc/Hoc';
 import { backendurl } from '../baseurls/baseurls';
-const Home = ({socket,userInfo,settracker,tracker}) => {
+const Home = ({socket,userInfo,settracker,tracker,handleupdatechatnotification}) => {
 
   const [userlogin, setUserLogin] = useState('');
   const [chatuser, setChatUser] = useState(false);
+  
   const [followersUser, setFollowersUser] = useState({});
   // const [userInfo, setUserInfo] = useState({});
   const [chatnotificat, statelivechatnotific] = useState('')
@@ -144,6 +145,7 @@ const Home = ({socket,userInfo,settracker,tracker}) => {
         chatuser={chatuser}
         minimized={minimized}
         setMinimized={setMinimized}
+        handleupdatechatnotification={handleupdatechatnotification}
        
 
 
@@ -177,7 +179,6 @@ const Home = ({socket,userInfo,settracker,tracker}) => {
             `}
           >
             <Rightsidebar
-              socket={socket}
               setFollowersUser={setFollowersUser}
               followersUser={followersUser}
               userlogin={userlogin}
@@ -186,8 +187,9 @@ const Home = ({socket,userInfo,settracker,tracker}) => {
               statelivechatnotific={statelivechatnotific}
               minimized={minimized}
               setChatUser={setChatUser}
-              chatuser={chatuser}
               loginuser = {userInfo._id}
+              socket={socket}
+              handleupdatechatnotification={handleupdatechatnotification}
             />
           </div>
         </div>
@@ -196,14 +198,16 @@ const Home = ({socket,userInfo,settracker,tracker}) => {
        {chatuser && (
         <LiveChat
           friend={chatuser}
-          Chatuser={setChatUser}
+          setChatUser={setChatUser}
           userlogin={userlogin}
-          socket={socket}
           setMinimized={setMinimized}
           minimized={minimized}
           handleUpdatenotific={handleUpdatenotific}
+          statelivechatnotific={statelivechatnotific}
           settracker={settracker}
           tracker={tracker}
+          socket={socket}
+          handleupdatechatnotification={handleupdatechatnotification}
 
        
 

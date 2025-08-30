@@ -3,8 +3,7 @@ const { userLogedInn, userLoggedout } = require('../utils/userStatus');
 const Message = require('../models/Messages');
 const path = require('path');
 const fs = require('fs').promises;
-const cookie = require("cookie");
-const jwt = require("jsonwebtoken");
+
 
 
 function initializeSocket(server) {
@@ -19,8 +18,10 @@ function initializeSocket(server) {
 
     io.on('connection', (socket) => {
 
+        // console.log(socket.id)
        socket.on('userid', async (userId) => {
 
+        // console.log(userId)
             socket.userId = userId; 
             
             socket.join(userId);
@@ -28,16 +29,15 @@ function initializeSocket(server) {
             await userLogedInn(userId); 
 
             io.emit('statusUpdate', { userId, status: 1 }); //emit to all loggedin user logedin userstatus(1)
-
-
+            io.emit('chattracker',{loginuser:userId,chatuser:'12345'})
 
         });
 
       //chatusertrack
 
         socket.on('chattracker',(data)=>{
-           
-            socket.broadcast.emit('chattracker',data)
+    
+           io.emit('chattracker',data)
 
         })
 
@@ -67,8 +67,8 @@ function initializeSocket(server) {
 
                 const savedMessage = await chatMessage.save();
                 const populatedMessage = await Message.findById(savedMessage._id)
-                    .populate('sender', 'name profilepicture')
-                    .populate('receiver', 'name profilepicture');
+                    .populate('sender', 'name profilepicture status')
+                    .populate('receiver', 'name profilepicture status');
 
                 io.to(receiverId).emit('chatretreive', populatedMessage);
                 io.to(senderId).emit('chatretreive', populatedMessage);
@@ -80,17 +80,9 @@ function initializeSocket(server) {
         });
 
 
-
-        //track login user currently chat with which friend
-        // socket.on('friendinfo', (id) => {
-         
-        //     socket.broadcast.emit('friendinfo', id);
-
-        // });
-
         //emit notification to logedin user to whom someone follow in real-time 
         socket.on('followuser', (followuser) => {
-
+                
             io.to(followuser.receiver).emit('followuser', followuser)
 
         })

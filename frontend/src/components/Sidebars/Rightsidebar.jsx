@@ -17,11 +17,7 @@ const RightSidebar = ({
 }) => {
 
 
-
-
-  const [friends, setFriends] = useState([]);
-
-  const handleLivechat = async(friend) => {
+ const handleLivechat = async(friend) => {
 
     //socket chatuser track
 
@@ -48,15 +44,6 @@ const RightSidebar = ({
 
   };
 
-  // build initial mutual friends list
-  useEffect(() => {
-    if (!followersUser) return;
-    const followings = followersUser.following || [];
-    const mutuals = followersUser.followers
-      ?.filter(user => followings.includes(user._id))
-      .sort((a, b) => b.status - a.status);
-    setFriends(mutuals || []);
-  }, [followersUser]);
 
   useEffect(() => {
     const handlestatusupdate = (data) => {
@@ -69,20 +56,16 @@ const RightSidebar = ({
     };
 
    const handlefollowuser = (data) => {
-  
-     setFollowersUser(prev => ({
+   setFollowersUser(prev => ({
     ...prev,
     followers: prev.followers.some(u => u._id === data.sender._id)
       ? prev.followers.filter(u => u._id !== data.sender._id)
-      : [...prev.followers, data.sender]
+      : [data.sender,...prev.followers,]
   }));
 
 };
 
-
- 
-
-    // register listeners
+ // register listeners
      socket?.on('statusUpdate', handlestatusupdate);
      socket?.on('followuser', handlefollowuser);
 
@@ -90,7 +73,7 @@ const RightSidebar = ({
       socket?.off('statusUpdate', handlestatusupdate);
       socket?.off('followuser', handlefollowuser);
     };
-  }, [socket, setFollowersUser]);
+  }, [socket]);
 
   return (
     <div>
@@ -103,10 +86,10 @@ const RightSidebar = ({
         <img src={Add} alt="Ad" className="rounded m-auto w-[60%] lg:w-full md:w-[70%]" />
       </div>
 
-      {friends.length > 0 && (
+      {followersUser.followers?.length > 0 && (
         <div className="p-5">
           <h3 className="font-bold mb-5">Friends</h3>
-          {friends.map((friend) => (
+          {followersUser?.followers.map((friend) => (
             <div
               onClick={() => handleLivechat(friend)}
               key={friend._id}
@@ -131,4 +114,4 @@ const RightSidebar = ({
   );
 };
 
-export default Hoc(RightSidebar);
+export default RightSidebar;

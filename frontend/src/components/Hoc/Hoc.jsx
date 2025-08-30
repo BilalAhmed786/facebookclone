@@ -1,13 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useContext } from 'react'
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import io from 'socket.io-client';
 import { backendurl } from '../../baseurls/baseurls';
-import { json } from 'react-router-dom';
-const socket = io(backendurl,{autoConnect:false});
+import { SocketContext } from '../../socketprovider/socketprovider';
 const Hoc = (Common) => {
   const Childfunc = (props) => {
-    
+
     //for post edit 
     const [editVisible, seteditVisible] = useState(false);
     const [editId, setEditid] = useState(null);
@@ -19,64 +17,70 @@ const Hoc = (Common) => {
     const [isVisible, setIsVisible] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [userInfo, setUserInfo] = useState({});
-    const [tracker,settracker] = useState([])
-   const fileInputRef = useRef(null);
+    const [tracker, settracker] = useState([])
+    const { socket } = useContext(SocketContext)
+    const fileInputRef = useRef(null);
 
-   
+
     useEffect(() => {
-      socket.connect(); // Connect the socket before passing it as a prop
 
 
-     const handlechattracker = (data) => {
-  
-  let tracker = JSON.parse(localStorage.getItem('chattracker') || "[]");
+      const handlechattracker = (data) => {
 
-  const userexist = tracker.some(user => user.loginuser === data.loginuser);
+        let tracker = JSON.parse(localStorage.getItem('chattracker') || "[]");
 
-  if (userexist) {
-    // Create a new updated array using map
-    tracker = tracker.map(user =>
-      user.loginuser === data.loginuser
-        ? { ...user, chatuser: data.chatuser }
-        : user
-    );
-  } else {
-    // Push new record if not exist
-    tracker.push(data);
-  }
+        const userexist = tracker.some(user => user.loginuser === data.loginuser);
 
-  // Save back to localStorage
-  localStorage.setItem('chattracker', JSON.stringify(tracker));
-  settracker(tracker)
+        if (userexist) {
+          // Create a new updated array using map
+          tracker = tracker.map(user =>
+            user.loginuser === data.loginuser
+              ? { ...user, chatuser: data.chatuser }
+              : user
+          );
+        } else {
+          // Push new record if not exist
+          tracker.push(data);
+        }
 
- };
+        // Save back to localStorage
+        localStorage.setItem('chattracker', JSON.stringify(tracker));
+        settracker(tracker)
 
-
-
-
-      socket?.on('chattracker',handlechattracker)
-    
-      return () => {
-        socket?.off('chattracker',handlechattracker)
-        socket.disconnect(); // Disconnect when the component unmounts
       };
-    }, []);
-   
-   useEffect(() => {
-      socket.connect()
-      
+      socket?.on('chattracker', handlechattracker)
+
+      return () => {
+        socket?.off('chattracker', handlechattracker)
+      };
+    }, [socket]);
+
+
+    useEffect(() => {
+      if (!socket.connected) {
+        socket.connect();
+      }
+
+      return () => {
+        socket.disconnect();
+      };
+    }, [socket]);
+
+    useEffect(() => {
+
       if (userInfo._id) {
         socket?.emit('userid', userInfo._id);
       }
 
-    }, [userInfo._id]);
-  
+
+    }, [userInfo._id, socket]);
+
     // Fetch user info
-   
+
     useEffect(() => {
       const fetchUserInfo = async () => {
         try {
-          const user = await axios.get(`${backendurl}/api/auth/userinfo`,{withCredentials:true});
+          const user = await axios.get(`${backendurl}/api/auth/userinfo`, { withCredentials: true });
           setUserInfo(user.data);
         } catch (error) {
           console.log(error);
@@ -86,17 +90,17 @@ const Hoc = (Common) => {
     }, [pagerender]);
 
 
-  const handleComment = async (postId, commentText) => {
+    const handleComment = async (postId, commentText) => {
 
       try {
-        const result = await axios.post(`${backendurl}/api/comments/comment/${postId}`, { text: commentText },{withCredentials:true});
+        const result = await axios.post(`${backendurl}/api/comments/comment/${postId}`, { text: commentText }, { withCredentials: true });
 
         toast.success(result.data.msg);
 
-       
-          //socket for real time comment to all follow user
 
-          socket?.emit('postcomment',{userdet:result.data.postcomment,recentcomment:result.data.recentcomment})
+        //socket for real time comment to all follow user
+
+        socket?.emit('postcomment', { userdet: result.data.postcomment, recentcomment: result.data.recentcomment })
 
         // setRender(Date.now())
 
@@ -107,19 +111,19 @@ const Hoc = (Common) => {
 
     //for post edit and delte
     const handleEdit = (postId) => {
-    
+
       setEditid(postId);
       seteditVisible(true);
     };
 
     const handleDelete = async (postId) => {
       try {
-        const result = await axios.delete(`${backendurl}/api/posts/${postId}`,{withCredentials:true});
+        const result = await axios.delete(`${backendurl}/api/posts/${postId}`, { withCredentials: true });
         toast.success(result.data.msg);
         setRender(Date.now())
-// for socket
+        // for socket
 
-        socket?.emit('deletepost',result.data.postdelete)
+        socket?.emit('deletepost', result.data.postdelete)
 
       } catch (error) {
         toast.error('Error deleting post');
@@ -155,13 +159,13 @@ const Hoc = (Common) => {
       try {
 
 
-        const result = await axios.delete(`${backendurl}/api/comments/removecomment/${commentId}`,{withCredentials:true})
+        const result = await axios.delete(`${backendurl}/api/comments/removecomment/${commentId}`, { withCredentials: true })
 
         toast.success(result.data.msg);
 
         //socket
 
-        socket?.emit('deletecommnet',{userinfo:result.data.userinfo,recentcomment:result.data.recentcomment})
+        socket?.emit('deletecommnet', { userinfo: result.data.userinfo, recentcomment: result.data.recentcomment })
 
         setRender(Date.now())
 
@@ -177,7 +181,7 @@ const Hoc = (Common) => {
 
     const handlecommentchildEdit = (commentId, replyId) => {
 
-      
+
       seteditCommentvisible((prevState) => ({
 
         ...prevState, [replyId]: !prevState[replyId]
@@ -190,7 +194,7 @@ const Hoc = (Common) => {
 
     const handlecommentchilddelte = async (commentId, replyId) => {
 
-     
+
       try {
 
         const result = await axios.delete(`api/comments/deletechildcomment/${commentId}/${replyId}`)
@@ -199,11 +203,11 @@ const Hoc = (Common) => {
 
         //socket
 
-        socket?.emit('commentreplydelete',{
+        socket?.emit('commentreplydelete', {
 
-          comment:result.data.comment,
-          userinfo:result.data.userinfo,
-          replyid:result.data.replyid
+          comment: result.data.comment,
+          userinfo: result.data.userinfo,
+          replyid: result.data.replyid
 
 
 
@@ -222,7 +226,7 @@ const Hoc = (Common) => {
 
 
     const handlecommentreplytoreplyEdit = (repliesId) => {
-    
+
 
       seteditCommentvisible((prevState) => ({
 
@@ -235,28 +239,28 @@ const Hoc = (Common) => {
     }
 
 
-    const handlecommentreplytoreplyDelete =async(replyid,repliesId)=>{
-
-  
-      try{
-
-          const result = await axios.delete(`${backendurl}/api/comments/replytoreplydelete/${repliesId}/${replyid}`,{withCredentials:true})
-
-          
-            toast.success(result.data.msg)
-        
-            //socket
-            socket?.emit('replytoreplydelete',{
-              userinfo:result.data.userinfo,
-              recentcomment:result.data.recentcomment,
-              replyid:result.data.replyid
-
-            })
+    const handlecommentreplytoreplyDelete = async (replyid, repliesId) => {
 
 
-          //  setRender(Date.now())
-       
-          }catch(error){
+      try {
+
+        const result = await axios.delete(`${backendurl}/api/comments/replytoreplydelete/${repliesId}/${replyid}`, { withCredentials: true })
+
+
+        toast.success(result.data.msg)
+
+        //socket
+        socket?.emit('replytoreplydelete', {
+          userinfo: result.data.userinfo,
+          recentcomment: result.data.recentcomment,
+          replyid: result.data.replyid
+
+        })
+
+
+        //  setRender(Date.now())
+
+      } catch (error) {
 
         console.log(error)
       }
@@ -265,13 +269,13 @@ const Hoc = (Common) => {
 
     const handleLike = async (postId) => {
       try {
-        const result = await axios.put(`${backendurl}/api/posts/like/${postId}`,{},{withCredentials:true});
+        const result = await axios.put(`${backendurl}/api/posts/like/${postId}`, {}, { withCredentials: true });
 
         toast.success(result.data.msg);
 
         //socket emit likes array
 
-        socket?.emit('likepost',result.data.postlike)
+        socket?.emit('likepost', result.data.postlike)
 
 
         setRender(Date.now())
@@ -283,14 +287,14 @@ const Hoc = (Common) => {
 
     const handleLikeComment = async (commentId) => {
       try {
-        const result = await axios.put(`${backendurl}/api/comments/like/${commentId}`,{},{withCredentials:true});
-       
-        toast.success(result.data.msg);
-       //socket like for real-time
-        
-       socket?.emit('commentlike',{userinfo:result.data.userinfo,recentcomment:result.data.recentcomment})
+        const result = await axios.put(`${backendurl}/api/comments/like/${commentId}`, {}, { withCredentials: true });
 
-       
+        toast.success(result.data.msg);
+        //socket like for real-time
+
+        socket?.emit('commentlike', { userinfo: result.data.userinfo, recentcomment: result.data.recentcomment })
+
+
         setRender(Date.now())
       } catch (error) {
         toast.error('Error liking comment');
@@ -299,17 +303,17 @@ const Hoc = (Common) => {
 
     const handlecommentreplylike = async (replyid, commentId) => {
       try {
-        const result = await axios.put(`${backendurl}/api/comments/replylike/${commentId}`, { replyid },{withCredentials:true});
+        const result = await axios.put(`${backendurl}/api/comments/replylike/${commentId}`, { replyid }, { withCredentials: true });
         toast.success(result.data.msg);
 
-      //socket
+        //socket
 
-          socket?.emit('commentreplylike',{
-            userinfo:result.data.userinfo,
-            comment:result.data.comment,
-            commentlike:result.data.commentlike
+        socket?.emit('commentreplylike', {
+          userinfo: result.data.userinfo,
+          comment: result.data.comment,
+          commentlike: result.data.commentlike
 
-          })
+        })
 
 
         setRender(Date.now())
@@ -318,23 +322,23 @@ const Hoc = (Common) => {
       }
     };
 
-    const handlereply2replylike = async (replyid,repliesid) => {
-    
+    const handlereply2replylike = async (replyid, repliesid) => {
 
-    
+
+
       try {
 
-        const result = await axios.put(`${backendurl}/api/comments/replytoreplylike/${repliesid}/${replyid}`,{},{withCredentials:true})
+        const result = await axios.put(`${backendurl}/api/comments/replytoreplylike/${repliesid}/${replyid}`, {}, { withCredentials: true })
 
 
         toast.success(result.data.msg)
 
         //socket
 
-        socket.emit('replytoreplylike',{
-          userinfo:result.data.userinfo,
-          recentcomment:result.data.recentcomment,
-          replyid:result.data.replyid
+        socket.emit('replytoreplylike', {
+          userinfo: result.data.userinfo,
+          recentcomment: result.data.recentcomment,
+          replyid: result.data.replyid
 
         })
 
@@ -385,52 +389,52 @@ const Hoc = (Common) => {
         const response = await axios.post(`${backendurl}/api/posts/upload`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
-            },
-            withCredentials:true
+          },
+          withCredentials: true
         });
         toast.success(response.data);
-        socket?.emit('postdata',response.data.postdata) 
+        socket?.emit('postdata', response.data.postdata)
         setSelectedFiles([]); // Clear the selected files after successful upload
       } catch (error) {
         toast.error(error.response.data);
       }
     };
 
-    const handlesharePost =async(postId)=>{
+    const handlesharePost = async (postId) => {
 
-      try{
+      try {
 
-       const result = await axios.post(`${backendurl}/api/posts/sharedpost/${postId}`,{},{withCredentials:true})
+        const result = await axios.post(`${backendurl}/api/posts/sharedpost/${postId}`, {}, { withCredentials: true })
 
-            toast.success(result.data)
+        toast.success(result.data)
 
-            setRender(Date.now())
-        
-          }catch(error){
+        setRender(Date.now())
 
-             console.log(error)
+      } catch (error) {
+
+        console.log(error)
       }
-     
+
     }
 
     //update chat notification
 
-    const handleupdatechatnotification = async(msgsender)=>{
-     
-    try {
+    const handleupdatechatnotification = async (msgsender) => {
 
-      const result = await axios.put(`${backendurl}/api/livechat/updatenotification/${msgsender}`,{},{withCredentials:true})
-  
-    } catch (error) {
-      console.log(error)
-    }
+      try {
+
+        const result = await axios.put(`${backendurl}/api/livechat/updatenotification/${msgsender}`, {}, { withCredentials: true })
+
+      } catch (error) {
+        console.log(error)
+      }
 
     }
 
 
 
     return <Common
-       {...props}
+      {...props}
       handlesharePost={handlesharePost}
       handleEdit={handleEdit}
       handleDelete={handleDelete}
