@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Profilephoto from '../../images/profilepic.webp'
 import Add from '../../images/jack-spade.gif'
 import { backendurl } from '../../baseurls/baseurls';
-import Hoc from '../Hoc/Hoc';
+
 
 const RightSidebar = ({ 
   socket,
@@ -16,6 +16,10 @@ const RightSidebar = ({
   statelivechatnotific
 }) => {
 
+
+
+
+  const [friends, setFriends] = useState([]);
 
  const handleLivechat = async(friend) => {
 
@@ -44,6 +48,15 @@ const RightSidebar = ({
 
   };
 
+  // build initial mutual friends list
+  useEffect(() => {
+    if (!followersUser) return;
+    const followings = followersUser.following || [];
+    const mutuals = followersUser.followers
+      ?.filter(user => followings.includes(user._id))
+      .sort((a, b) => b.status - a.status);
+    setFriends(mutuals || []);
+  }, [followersUser]);
 
   useEffect(() => {
     const handlestatusupdate = (data) => {
@@ -76,7 +89,7 @@ const RightSidebar = ({
   }, [socket]);
 
   return (
-    <div>
+    <div className='m-5 h-screen'>
       <div className="mb-4">
         <h3 className="font-bold">Birthdays</h3>
         <p>Pola Foster and 3 other friends have a birthday today.</p>
@@ -86,10 +99,10 @@ const RightSidebar = ({
         <img src={Add} alt="Ad" className="rounded m-auto w-[60%] lg:w-full md:w-[70%]" />
       </div>
 
-      {followersUser.followers?.length > 0 && (
-        <div className="p-5">
+      {friends?.length > 0 && (
+        <div className="p-10 h-[400px] w-full overflow-auto">
           <h3 className="font-bold mb-5">Friends</h3>
-          {followersUser?.followers.map((friend) => (
+          {friends.map((friend) => (
             <div
               onClick={() => handleLivechat(friend)}
               key={friend._id}
