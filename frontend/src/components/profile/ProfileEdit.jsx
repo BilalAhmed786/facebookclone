@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import { FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { backendurl } from '../../baseurls/baseurls';
 
 const ProfileEdit = ({ onClose,userinfo,setpagerender}) => {
   
@@ -16,6 +17,7 @@ const ProfileEdit = ({ onClose,userinfo,setpagerender}) => {
 
       const result = await axios.put(`${backendurl}/api/users/userinfoedit`,{city,from,relationship},{withCredentials:true})
 
+    
       toast.success(result.data)
       
       setpagerender(Date.now())
@@ -24,7 +26,8 @@ const ProfileEdit = ({ onClose,userinfo,setpagerender}) => {
 
     }catch(error){
 
-      toast.error(error.response.data)
+      console.log(error)
+   
     }
  
   };
