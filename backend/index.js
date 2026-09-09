@@ -26,7 +26,7 @@ app.use(express.urlencoded({extended:true}))
 app.use(express.static(path.join(__dirname,'public')))
 app.use(cors({
 
-    origin:'http://localhost:5173',
+    origin:'https://facebokmini.netlify.app',
     credentials:true
 
 }))
