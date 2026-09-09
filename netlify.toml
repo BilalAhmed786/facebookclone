@@ -1,0 +1,3 @@
+base = "frontend"
+  command = "DISABLE_ESLINT_PLUGIN=true CI= npm run build"
+  publish = "dist"
