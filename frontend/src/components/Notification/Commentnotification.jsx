@@ -15,7 +15,7 @@ const Commentnotification = ({
     setChatUser({
       username: userdet.sender.name,
       userid: userdet.sender._id,
-      userprofile: userdet.sender.profilepicture,
+      userprofile: userdet.sender.profilepicture.url,
       userstatus:userdet.sender.status
       
     });
@@ -47,7 +47,7 @@ const Commentnotification = ({
           >
             <img
               className="w-10 h-10 rounded-full border border-gray-300 object-cover"
-              src={`${backendurl}/uploads/${userdet.sender.profilepicture}`}
+              src={userdet.sender.profilepicture.url}
               alt="profile"
             />
             <div className="flex flex-col flex-1">

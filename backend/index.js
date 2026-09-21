@@ -3,7 +3,6 @@ require('dotenv').config()
 require('./database/db')
 const cookieParser = require('cookie-parser');
 const cors = require('cors')
-const path = require('path');
 const authorize = require('./middleware/verifyuser')
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
@@ -23,7 +22,6 @@ initializeSocket(server);
 app.use(cookieParser());
 app.use(express.json()); 
 app.use(express.urlencoded({extended:true}))   
-app.use(express.static(path.join(__dirname,'public')))
 app.use(cors({
 
     origin:'https://facebokmini.netlify.app',

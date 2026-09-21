@@ -3,7 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const userverify = require("../middleware/verifyuser");
-
+const sendEmail = require('../utils/sendEmail');
+const getResetEmailTemplate = require('../utils/emailTemplate');
 const router = express.Router();
 
 // Register new user
@@ -47,6 +48,81 @@ router.post("/register", async (req, res) => {
   }
 });
 
+router.post('/forgotpassword', async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json("Email is required");
+  }
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json("If that email exists, a password reset link has been sent.");
+    }
+
+    // Generate token & reset link
+    const secret = process.env.TOKEN_SEC + user.password;
+    const resetToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      secret,
+      { expiresIn: '5m' }
+    );
+    const resetLink = `${process.env.CLIENT_URL}/resetpassword/${user._id}/${resetToken}`;
+
+    // Send Email using the modular function
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset Request',
+      html: getResetEmailTemplate(user.name, resetLink),
+    });
+
+    return res.status(200).json("Password reset link sent to your email.");
+  } catch (err) {
+    console.error("Error sending email:", err);
+    return res.status(500).json("Server error while sending email");
+  }
+});
+
+// 2. RESET PASSWORD API
+router.post('/resetpassword/:id/:token', async (req, res) => {
+  const { id, token } = req.params;
+  const { newPassword, confirmPassword } = req.body;
+
+  if (!newPassword || !confirmPassword) {
+    return res.status(400).json("All fields are required");
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json("Passwords do not match");
+  }
+
+  try {
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(400).json("Invalid link or user does not exist");
+    }
+
+    // Verify token with the user-specific secret
+    const secret = process.env.TOKEN_SEC + user.password;
+    
+    try {
+      jwt.verify(token, secret);
+    } catch (tokenErr) {
+      return res.status(400).json("Invalid or expired password reset link");
+    }
+
+    // Update password (pre-save middleware will automatically hash it)
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json("Password reset successfully");
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json("Server error");
+  }
+});
 //for procted routes
 
 router.get("/userinfo", userverify, async (req, res) => {

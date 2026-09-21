@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FaEdit } from 'react-icons/fa';
+import { FaPen, FaMapMarkerAlt, FaGlobeAmericas, FaHeart, FaUserFriends } from 'react-icons/fa';
 import ProfileEdit from '../profile/ProfileEdit';
 import Profilephoto from '../../images/profilepic.webp'
 
@@ -14,6 +14,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender, loginUser }) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [followers, setFollowers] = useState([]);
+  const [isLoadingFollowers, setIsLoadingFollowers] = useState(true);
   const { id } = useParams();
 
 
@@ -33,6 +34,7 @@ const ProfileRightSidebar = ({ userinfo, setpagerender, loginUser }) => {
 
   useEffect(() => {
     const fetchFollowers = async () => {
+      setIsLoadingFollowers(true)
       try {
         const response = await axios.get(`${backendurl}/api/users/followers`, {
           params: { follow: userinfo.followers },
@@ -43,6 +45,8 @@ const ProfileRightSidebar = ({ userinfo, setpagerender, loginUser }) => {
 
       } catch (error) {
         console.error('Error fetching followers:', error);
+      } finally {
+        setIsLoadingFollowers(false)
       }
     };
 
@@ -54,43 +58,87 @@ const ProfileRightSidebar = ({ userinfo, setpagerender, loginUser }) => {
   }, [userinfo]);
 
   return (
-    <div className="p-4 bg-white w-full rounded-lg">
+    <div className="p-5 bg-white sticky top-0 w-full self-start max-h-[calc(100vh-2rem)] overflow-y-auto rounded-xl border border-slate-200 shadow-sm">
       {isEditing ? (
         <ProfileEdit onClose={handleCloseClick} userinfo={userinfo} setpagerender={setpagerender} />
       ) : (
-        <div className='w-full flex flex-col justify-center items-center'>
-          <div className='w-full flex justify-center gap-2'>
-            <h2 className="text-lg font-bold text-gray-900 mb-4">User Information</h2>
+        <div className='w-full flex flex-col'>
+
+          {/* Header */}
+          <div className='w-full flex items-center justify-between mb-4'>
+            <h2 className="text-base font-semibold text-slate-900">User information</h2>
             {loginUser === id &&
               <button
                 onClick={handleEditClick}
-                className="-mt-3 text-blue-500 hover:text-blue-700"
+                aria-label="Edit profile information"
+                className="grid place-items-center w-8 h-8 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
               >
-                <FaEdit className="mr-2" />
+                <FaPen size={13} />
               </button>
             }
           </div>
-          <div className="w-full flex flex-col justify-center items-center mb-4">
-            <p><span className="font-semibold">City:</span> {userinfo.city ? userinfo.city : "Islamabad"}</p>
-            <p><span className="font-semibold">From:</span> {userinfo.from ? userinfo.from : "Pakistan"}</p>
-            <p><span className="font-semibold">Relationship:</span> {userinfo.relationship ? userinfo.relationship : "Single"}</p>
+
+          {/* Info list */}
+          <div className="w-full flex flex-col gap-3 pb-5 mb-5 border-b border-slate-100">
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <span className="grid place-items-center w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 shrink-0">
+                <FaMapMarkerAlt size={13} />
+              </span>
+              <span>Lives in <span className="font-medium text-slate-900">{userinfo.city || "Islamabad"}</span></span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <span className="grid place-items-center w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 shrink-0">
+                <FaGlobeAmericas size={13} />
+              </span>
+              <span>From <span className="font-medium text-slate-900">{userinfo.from || "Pakistan"}</span></span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-slate-700">
+              <span className="grid place-items-center w-8 h-8 rounded-full bg-indigo-50 text-indigo-500 shrink-0">
+                <FaHeart size={13} />
+              </span>
+              <span className="font-medium text-slate-900 capitalize">{userinfo.relationship || "Single"}</span>
+            </div>
           </div>
-          <h3 className="text-md font-semibold text-gray-800 mb-2 mt-5">Followers</h3>
-          <div className="left-sidebar flex justify-center max-h-screen overflow-y-auto w-full">
-            <ul className="space-y-2">
-              {followers.map((follower, index) => (
-                <li key={index}>
-                  <Link to={`${frontendurl}/profile/${follower._id}`} className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md">
-                    <img
-                      src={follower.profilepicture ? `${backendurl}/uploads/${follower.profilepicture}` : Profilephoto}
-                      alt={follower.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <p className="text-sm font-medium text-gray-700">{follower.name}</p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+
+          {/* Followers */}
+          <div className="w-full flex items-center gap-2 mb-3">
+            <FaUserFriends className="text-slate-400" size={14} />
+            <h3 className="text-sm font-semibold text-slate-800">
+              Followers{followers.length > 0 && !isLoadingFollowers ? ` (${followers.length})` : ''}
+            </h3>
+          </div>
+
+          <div className="w-full max-h-80 overflow-y-auto">
+            {isLoadingFollowers ? (
+              <ul className="space-y-1 animate-pulse">
+                {[0, 1, 2].map((i) => (
+                  <li key={i} className="flex items-center gap-3 p-2">
+                    <div className="w-11 h-11 rounded-full bg-slate-200 shrink-0" />
+                    <div className="h-3 w-24 bg-slate-200 rounded" />
+                  </li>
+                ))}
+              </ul>
+            ) : followers.length === 0 ? (
+              <p className="text-sm text-slate-400 py-3 text-center">No followers yet</p>
+            ) : (
+              <ul className="space-y-1">
+                {followers.map((follower, index) => (
+                  <li key={index}>
+                    <Link
+                      to={`${frontendurl}/profile/${follower._id}`}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors"
+                    >
+                      <img
+                        src={follower?.profilepicture?.url ||  Profilephoto}
+                        alt={follower.name}
+                        className="w-11 h-11 rounded-full object-cover shrink-0"
+                      />
+                      <p className="text-sm font-medium text-slate-700 truncate">{follower.name}</p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       )}

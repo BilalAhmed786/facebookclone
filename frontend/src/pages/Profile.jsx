@@ -80,11 +80,12 @@ return ()=>{
 return (
        <>
             <Profiletopbar userInfo={userInfo} />
-            <div className="flex h-[85vh]">
-                <div className='left-sidebar hidden lg:block md:hidden w-64 bg-white p-4 h-screen overflow-y-auto'>
+            
+            <div className="flex h-[calc(100vh-64px)]">
+                <div className='left-sidebar hidden lg:block w-64 shrink-0 bg-white border-r border-slate-200 p-4 h-full overflow-y-auto'>
                 <Leftsidebar />
                 </div>
-                <div className="left-sidebar w-full overflow-auto">
+                <div className="main-scroll left-sidebar w-full h-full overflow-y-auto bg-slate-100">
                 <Profilecover
                 coverPic={coverPic}
                 loginUser={loginUser}
@@ -103,20 +104,13 @@ return (
 
                 
                 />
-                    <div className="relative min-h-[85vh] flex overflow-hidden">
-                       
-                       <div className={`left-sidebar flex-[2] lg:relative lg:translate-x-0 overflow-auto
-                            ${!togglerightsb? 'absolute inset-0 translate-x-0':'-translate-x-full'} `}
+                    <div className="flex gap-4 max-w-5xl mx-auto lg:px-4 pb-8">
 
-                       
-                       >
+                       <div className={`flex-[2] ${togglerightsb ? 'hidden' : 'block'} lg:block`}>
                         <ProfileFeed profilePic={profilePic} loginUser={loginUser}  />
                        </div>
-                       
-                       <div className={`left-sidebar flex justify-center flex-[1] lg:relative lg:translate-x-0 overflow-auto
-                       ${togglerightsb? 'absolute inset-0 translate-x-0':'-translate-x-full'}`}
-                       
-                       >
+
+                       <div className={`flex justify-center flex-[1] ${togglerightsb ? 'block' : 'hidden'} lg:block`}>
                         <ProfileRightsidebar userinfo={userinfo} loginUser={loginUser} setpagerender={setpagerender} />
                         </div>
                     

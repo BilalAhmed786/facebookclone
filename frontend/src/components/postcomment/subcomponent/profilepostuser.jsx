@@ -1,17 +1,28 @@
-import React from 'react'
-import { format } from 'timeago.js'
-import { backendurl } from '../../../baseurls/baseurls'
-const profilepostuser = ({post}) => {
-    return (
-        <>
+import { format } from 'timeago.js';
+import profilephoto from '../../../images/profilepic.webp';
 
-            <img src={post.user.profilepicture ? `${backendurl}/uploads/${post.user.profilepicture}` : profilephoto} alt="User" className="w-10 h-10 rounded-full" />
-            <div>
-                <h2 className="font-bold">{post.user.name}</h2>
-                <p className="text-gray-500 text-sm">{format(post.createdAt)}</p>
-            </div>
-        </>
-    )
-}
+const ProfilePostUser = ({ post }) => {
+  const user = post?.user;
+  const avatarSrc = user?.profilepicture?.url
+    || profilephoto;
 
-export default profilepostuser
+  return (
+    <div className="flex items-center space-x-3">
+      <img
+        src={avatarSrc}
+        alt={user?.name || 'User profile picture'}
+        className="w-10 h-10 rounded-full object-cover shrink-0 border border-gray-100"
+      />
+      <div className="flex flex-col min-w-0">
+        <h2 className="font-semibold text-sm text-gray-900 leading-snug truncate hover:underline cursor-pointer">
+          {user?.name || 'Anonymous'}
+        </h2>
+        <p className="text-xs text-gray-400 font-normal">
+          {post?.createdAt ? format(post.createdAt) : ''}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default ProfilePostUser;
