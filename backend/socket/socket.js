@@ -9,7 +9,7 @@ const fs = require('fs').promises;
 function initializeSocket(server) {
     const io = new Server(server, {
         cors: {
-            origin: 'https://facebookclone.fasst-sallar.workers.dev',
+            origin: 'http://localhost:5173',
             methods: ['GET', 'POST', 'DELETE', 'PUT'],
             credentials: true,
         },

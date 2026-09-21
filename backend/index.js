@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}))   
 app.use(cors({
 
-    origin:'https://facebookclone.fasst-sallar.workers.dev',
+    origin:'http://localhost:5173',
     credentials:true
 
 }))
