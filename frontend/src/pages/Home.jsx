@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Rightsidebar from '../components/Sidebars/Rightsidebar';
 import Leftsidebar from '../components/Sidebars/Leftsidebar';
 import Topbar from '../components/Topbar/Topbar';
@@ -134,7 +134,7 @@ const Home = ({socket,userInfo,settracker,tracker,handleupdatechatnotification})
 
 
   return (
-    <div>
+    <div className='overflow-hidden h-screen'>
       <Topbar
         socket={socket}
         followers={followersUser}

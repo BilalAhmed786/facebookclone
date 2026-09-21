@@ -78,7 +78,7 @@ return ()=>{
 
 
 return (
-       <>
+       <div className='overflow-hidden h-screen'>
             <Profiletopbar userInfo={userInfo} />
             
             <div className="flex h-[calc(100vh-64px)]">
@@ -118,7 +118,7 @@ return (
                 </div>
             </div>
             <Togglewall settogglerightsb={settogglerightsb} togglerightsb={togglerightsb} />
-        </>
+        </div>
     );
 };
 

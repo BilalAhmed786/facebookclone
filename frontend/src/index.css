@@ -2,13 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  overflow: hidden;
-  height: 100vh;
-  margin:0;
-  padding:0
-  
-}
 
 /* src/components/LeftSidebar.css */
 
