@@ -1,2 +1,2 @@
-export const backendurl = "http://localhost:4000"
-export const frontendurl = "https://localhost:5173"
+export const backendurl = "https://facebookmini-backend.onrender.com"
+export const frontendurl = "https://facebookclone.fasst-sallar.workers.dev"
